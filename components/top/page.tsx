@@ -18,15 +18,11 @@ export default function Home() {
   const [timer, setTimer] = useState(60);
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
-  const [typedWord, setTypedWord] = useState(""); // 追加: ユーザーがタイプしたワードを追跡
-  const [successStreak, setSuccessStreak] = useState(0); // 追加: 連続成功回数を追跡
+  const [typedWord, setTypedWord] = useState(""); // ユーザーがタイプしたワードを追跡
+  const [successStreak, setSuccessStreak] = useState(0); // 連続成功回数を追跡
+  const [countdown, setCountdown] = useState(3); // カウントダウンの初期値を3に設定
   const wordTimer = useRef<NodeJS.Timeout | null>(null);
-
-  const startAudio = useMemo(() => {
-    const audio = new Audio("/start.mp3");
-    audio.volume = 0.4; // 50% volume
-    return audio;
-  }, []);
+  const countdownTimer = useRef<NodeJS.Timeout | null>(null); // カウントダウンタイマーの参照を追加
 
   const gameAudio = useMemo(() => {
     const audio = new Audio("/game.mp3");
@@ -58,44 +54,41 @@ export default function Home() {
     return audio;
   }, []);
 
+  const failureAudio = useMemo(() => {
+    const audio = new Audio("/failure.mp3");
+    audio.volume = 0.5; // 50% volume
+    return audio;
+  }, []);
+
+  const resultAudio = useMemo(() => {
+    const audio = new Audio("/result.mp3");
+    audio.volume = 0.9; // 50% volume
+    return audio;
+  }, []);
+
+  const countdownAudio = useMemo(() => {
+    const audio = new Audio("/countdown.mp3");
+    audio.volume = 0.5; // 50% volume
+    return audio;
+  }, []);
+
   useEffect(() => {
-    if (screen === "start") {
-      startAudio.play();
-      gameAudio.pause();
-    } else if (screen === "level" && gameStarted) {
-      startAudio.pause();
+    if (screen === "level" && gameStarted) {
+      gameAudio.currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
       gameAudio.play();
     } else if (screen === "home" || screen === "result") {
-      startAudio.pause();
       gameAudio.pause();
     }
-  }, [gameAudio, screen, startAudio, gameStarted]);
+  }, [gameAudio, screen, gameStarted]);
 
   useEffect(() => {
     const handleKeyDown = (event: { code: string }) => {
       if (event.code === "Space" && screen === "level") {
         setGameStarted(true);
-        setGameInProgress(true);
-        // Select a new word based on the difficulty
-        let wordList: string | any[];
-        switch (difficulty) {
-          case "easy":
-            wordList = easyWords;
-            break;
-          case "normal":
-            wordList = normalWords;
-            break;
-          case "hard":
-            wordList = hardWords;
-            break;
-          case "oni":
-            wordList = oniWords;
-            break;
-          default:
-            wordList = [];
-        }
-        const newWord = wordList[Math.floor(Math.random() * wordList.length)];
-        setCurrentWord(newWord);
+        countdownAudio.play(); // カウントダウン音を再生
+        countdownTimer.current = setInterval(() => {
+          setCountdown((prevCountdown) => prevCountdown - 1);
+        }, 1000); // 1秒ごとにカウントダウンを進行
       }
     };
 
@@ -104,9 +97,37 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [difficulty, screen]);
+  }, [countdownAudio, difficulty, screen]);
 
-  // 追加: ユーザーがキーボードで文字を入力したときの処理
+  // カウントダウンが0になったらゲームを開始
+  useEffect(() => {
+    if (countdown === 0) {
+      setGameInProgress(true);
+      clearInterval(countdownTimer.current);
+      // Select a new word based on the difficulty
+      let wordList: string | any[];
+      switch (difficulty) {
+        case "easy":
+          wordList = easyWords;
+          break;
+        case "normal":
+          wordList = normalWords;
+          break;
+        case "hard":
+          wordList = hardWords;
+          break;
+        case "oni":
+          wordList = oniWords;
+          break;
+        default:
+          wordList = [];
+      }
+      const newWord = wordList[Math.floor(Math.random() * wordList.length)];
+      setCurrentWord(newWord);
+    }
+  }, [countdown, difficulty]);
+
+  // ユーザーがキーボードで文字を入力したときの処理
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (gameInProgress) {
@@ -171,6 +192,42 @@ export default function Home() {
     successStreak,
   ]);
 
+  // 5秒間で1ワードの全ての文字をキーボード入力できなかったら、public/failure.mp3を流して次のワードを出す
+  useEffect(() => {
+    if (gameInProgress) {
+      wordTimer.current = setTimeout(() => {
+        failureAudio.play();
+        setTypedWord("");
+        // Select a new word based on the difficulty
+        let wordList: string | any[];
+        switch (difficulty) {
+          case "easy":
+            wordList = easyWords;
+            break;
+          case "normal":
+            wordList = normalWords;
+            break;
+          case "hard":
+            wordList = hardWords;
+            break;
+          case "oni":
+            wordList = oniWords;
+            break;
+          default:
+            wordList = [];
+        }
+        const newWord = wordList[Math.floor(Math.random() * wordList.length)];
+        setCurrentWord(newWord);
+      }, 5000);
+    }
+
+    return () => {
+      if (wordTimer.current) {
+        clearTimeout(wordTimer.current);
+      }
+    };
+  }, [gameInProgress, difficulty, failureAudio]);
+
   const HomeScreen = () => (
     <div className="flex justify-center">
       <div className="">
@@ -180,7 +237,6 @@ export default function Home() {
         <button
           onClick={() => {
             setScreen("start");
-            startAudio.play();
           }}
           className="btn"
         >
@@ -294,6 +350,7 @@ export default function Home() {
       if (timer === 0) {
         setGameInProgress(false);
         setScreen("result"); // ゲーム終了時に結果画面に遷移
+        resultAudio.play(); // 結果発表の画面になったら、public/result.mp3を再生する
         clearInterval(timerId);
         if (wordTimer.current) {
           clearInterval(wordTimer.current);
@@ -302,13 +359,13 @@ export default function Home() {
 
       return () => clearInterval(timerId);
     }
-  }, [gameStarted, gameInProgress, timer]);
+  }, [gameStarted, gameInProgress, timer, resultAudio]);
 
   return (
     <div className="mx-auto flex items-center">
       {/* ゲームの中身 */}
       <div className="w-[500px] h-[420px] bg-white rounded-[17px] flex flex-col">
-        <div className="">
+        <div className="h-full flex justify-center items-center">
           {screen === "home" && <HomeScreen />}
           {screen === "start" && <StartScreen />}
           {screen === "level" && <LevelScreen />}
