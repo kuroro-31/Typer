@@ -14,12 +14,12 @@ export default function Home() {
   const [difficulty, setDifficulty] = useState<
     "easy" | "normal" | "hard" | "oni" | null
   >(null);
-  const [gameInProgress, setGameInProgress] = useState(false);
+  const [gameInProgress, setGameInProgress] = useState<boolean | null>(null);
   const [timer, setTimer] = useState(120);
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
-  const [successStreak, setSuccessStreak] = useState(0);
+  const [typedWord, setTypedWord] = useState(""); // 追加: ユーザーがタイプしたワードを追跡
+  const [successStreak, setSuccessStreak] = useState(0); // 追加: 連続成功回数を追跡
   const wordTimer = useRef<NodeJS.Timeout | null>(null);
 
   const startAudio = useMemo(() => {
@@ -30,33 +30,45 @@ export default function Home() {
 
   const gameAudio = useMemo(() => {
     const audio = new Audio("/game.mp3");
-    audio.volume = 0.2; // 50% volume
+    audio.volume = 0.25; // 50% volume
     return audio;
   }, []);
 
   useEffect(() => {
     if (screen === "start") {
-      if (isMuted) {
-        startAudio.pause();
-      } else {
-        startAudio.play();
-      }
+      startAudio.play();
       gameAudio.pause();
     } else if (screen === "level" && gameStarted) {
       startAudio.pause();
-      if (isMuted) {
-        gameAudio.pause();
-      } else {
-        gameAudio.play();
-      }
+      gameAudio.play();
     }
-  }, [gameAudio, screen, startAudio, gameStarted, isMuted]);
+  }, [gameAudio, screen, startAudio, gameStarted]);
 
   useEffect(() => {
     const handleKeyDown = (event: { code: string }) => {
       if (event.code === "Space") {
         setGameStarted(true);
         setGameInProgress(true);
+        // Select a new word based on the difficulty
+        let wordList: string | any[];
+        switch (difficulty) {
+          case "easy":
+            wordList = easyWords;
+            break;
+          case "normal":
+            wordList = normalWords;
+            break;
+          case "hard":
+            wordList = hardWords;
+            break;
+          case "oni":
+            wordList = oniWords;
+            break;
+          default:
+            wordList = [];
+        }
+        const newWord = wordList[Math.floor(Math.random() * wordList.length)];
+        setCurrentWord(newWord);
       }
     };
 
@@ -65,7 +77,50 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [difficulty]);
+
+  // 追加: ユーザーがキーボードで文字を入力したときの処理
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (gameInProgress) {
+        const nextTypedWord = typedWord + event.key;
+        if (currentWord?.romaji.startsWith(nextTypedWord)) {
+          setTypedWord(nextTypedWord);
+          if (nextTypedWord === currentWord?.romaji) {
+            setScore((prevScore) => prevScore + 1);
+            setTypedWord("");
+            // Select a new word based on the difficulty
+            let wordList: string | any[];
+            switch (difficulty) {
+              case "easy":
+                wordList = easyWords;
+                break;
+              case "normal":
+                wordList = normalWords;
+                break;
+              case "hard":
+                wordList = hardWords;
+                break;
+              case "oni":
+                wordList = oniWords;
+                break;
+              default:
+                wordList = [];
+            }
+            const newWord =
+              wordList[Math.floor(Math.random() * wordList.length)];
+            setCurrentWord(newWord);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [gameInProgress, currentWord, typedWord, difficulty]);
 
   const HomeScreen = () => (
     <div className="flex justify-center">
@@ -140,17 +195,22 @@ export default function Home() {
         <div className="mx-auto my-8 text-center">
           <p>{currentWord?.furigana}</p>
           <p className="text-2xl font-semibold">{currentWord?.kanji}</p>
-          <p>{currentWord?.romaji}</p>
+          <p>
+            {currentWord?.romaji.split("").map((char, index) => (
+              <span
+                key={index}
+                style={{ color: typedWord.length > index ? "red" : "black" }}
+              >
+                {char}
+              </span>
+            ))}
+          </p>
         </div>
       )}
 
       {!gameInProgress && <p>スペースキーを押してスタート</p>}
 
       {gameInProgress && <p className="mt-auto">Score: {score}</p>}
-
-      <button onClick={() => setIsMuted(!isMuted)}>
-        {isMuted ? "Unmute" : "Mute"}
-      </button>
     </div>
   );
 
@@ -173,49 +233,6 @@ export default function Home() {
       return () => clearInterval(timerId);
     }
   }, [gameStarted, gameInProgress, timer]);
-
-  useEffect(() => {
-    if (gameStarted && gameInProgress) {
-      // Select a new word based on the difficulty
-      let wordList: string | any[];
-      switch (difficulty) {
-        case "easy":
-          wordList = easyWords;
-          break;
-        case "normal":
-          wordList = normalWords;
-          break;
-        case "hard":
-          wordList = hardWords;
-          break;
-        case "oni":
-          wordList = oniWords;
-          break;
-        default:
-          wordList = [];
-      }
-
-      const newWord = wordList[Math.floor(Math.random() * wordList.length)];
-      setCurrentWord(newWord);
-
-      // Set a timer to change the word every 5 seconds
-      wordTimer.current = setInterval(() => {
-        const newWord = wordList[Math.floor(Math.random() * wordList.length)];
-        setCurrentWord(newWord);
-        setScore((prevScore) => prevScore + newWord.kanji.length);
-        setSuccessStreak((prevStreak) => prevStreak + 1);
-        if (successStreak !== 0 && successStreak % 10 === 0) {
-          setTimer((prevTimer) => prevTimer + 1);
-        }
-      }, 5000);
-    }
-
-    return () => {
-      if (wordTimer.current) {
-        clearInterval(wordTimer.current);
-      }
-    };
-  }, [gameStarted, gameInProgress, difficulty, successStreak]);
 
   return (
     <div className="mx-auto flex items-center">
