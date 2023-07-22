@@ -30,7 +30,7 @@ export default function Home() {
 
   const gameAudio = useMemo(() => {
     const audio = new Audio("/game.mp3");
-    audio.volume = 0.25; // 50% volume
+    audio.volume = 0.2; // 50% volume
     return audio;
   }, []);
 
