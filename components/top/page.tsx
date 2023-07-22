@@ -5,19 +5,39 @@ export default function Home() {
   const [screen, setScreen] = useState("home");
 
   const HomeScreen = () => (
-    <div>
-      <button onClick={() => setScreen("start")}>スタート</button>
-      <button>遊び方</button>
-      <button>設定</button>
+    <div className="flex justify-center">
+      <div className="">
+        <h2></h2>
+      </div>
+      <div className="inline-flex flex-col">
+        <button onClick={() => setScreen("start")} className="btn">
+          スタート
+        </button>
+        <button className="btn-border mt-2">遊び方</button>
+        <button className="btn-border mt-2">設定</button>
+      </div>
     </div>
   );
 
   const StartScreen = () => (
-    <div>
-      <button onClick={() => setScreen("level")}>易しい</button>
-      <button onClick={() => setScreen("level")}>普通</button>
-      <button onClick={() => setScreen("level")}>難しい</button>
-      <button onClick={() => setScreen("level")}>鬼</button>
+    <div className="flex justify-center">
+      <div className="">
+        <h2></h2>
+      </div>
+      <div className="inline-flex flex-col">
+        <button onClick={() => setScreen("level")} className="btn-easy mt-2">
+          易しい
+        </button>
+        <button onClick={() => setScreen("level")} className="btn-normal mt-2">
+          普通
+        </button>
+        <button onClick={() => setScreen("level")} className="btn-hard mt-2">
+          難しい
+        </button>
+        <button onClick={() => setScreen("level")} className="btn-oni mt-2">
+          鬼
+        </button>
+      </div>
     </div>
   );
 
@@ -30,7 +50,7 @@ export default function Home() {
   return (
     <div className="mx-auto flex items-center">
       {/* ゲームの中身 */}
-      <div className="w-[500px] h-[420px] bg-white">
+      <div className="w-[500px] h-[420px] bg-white rounded-[17px] p-4">
         {screen === "home" && <HomeScreen />}
         {screen === "start" && <StartScreen />}
         {screen === "level" && <LevelScreen />}

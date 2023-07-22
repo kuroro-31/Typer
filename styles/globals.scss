@@ -73,93 +73,24 @@ button {
 |--------------------------------------------------------------------------
 */
 .btn {
-  @apply text-white bg-primary hover:brightness-110 rounded-[12px] py-2 px-6 text-[12.8px] transition-all;
+  @apply text-white bg-primary hover:brightness-110 rounded-[12px] py-2 px-8 text-lg transition-all font-semibold;
   &:hover {
     box-shadow: 0 10px 20px -10px rgba(var(--primary), 1);
     transform: translateY(-3px);
   }
   &-border {
-    @apply text-primary bg-primary bg-opacity-[15%] hover:bg-opacity-[25%] rounded-[12.8px] py-2 px-6 text-[12.8px] transition-all;
+    @apply text-primary bg-primary bg-opacity-[15%] hover:bg-opacity-[25%] rounded-[12.8px] py-2 px-8 text-lg transition-all font-semibold;
   }
-}
-/*
-|--------------------------------------------------------------------------
-| 認証フォームラベル
-|--------------------------------------------------------------------------
-*/
-.label {
-  @apply transform px-2 text-[#9BA3AF] tracking-widest translate-y-2.5 pointer-events-none;
-}
-
-.input-field:focus + .label,
-.label-focused {
-  @apply text-xs text-primary -translate-y-[1.2rem] bg-white px-2 py-1 z-20;
-}
-
-.input-field:focus {
-  @apply border border-primary;
-}
-
-/*
-|--------------------------------------------------------------------------
-| フォームのプログレスバー
-|--------------------------------------------------------------------------
-*/
-.progress {
-  width: 100%;
-  height: 5px;
-  background-color: transparent;
-  position: relative;
-  overflow: hidden;
-
-  .color {
-    @apply bg-primary;
-    height: 10px;
-    width: 50%;
-    position: absolute;
-    transform: translateX(-100%);
-    animation: progressBar 0.8s infinite linear;
+  &-easy {
+    @apply text-success bg-success bg-opacity-[15%] hover:bg-opacity-[25%] rounded-[12.8px] py-2 px-8 text-lg transition-all font-semibold;
   }
-}
-
-@keyframes progressBar {
-  0% {
-    transform: translateX(-200%);
+  &-normal {
+    @apply text-amazon bg-amazon bg-opacity-[15%] hover:bg-opacity-[25%] rounded-[12.8px] py-2 px-8 text-lg transition-all font-semibold;
   }
-
-  100% {
-    transform: translateX(200%);
+  &-hard {
+    @apply text-twitter bg-twitter bg-opacity-[15%] hover:bg-opacity-[25%] rounded-[12.8px] py-2 px-8 text-lg transition-all font-semibold;
   }
-}
-
-.gg-profile,
-.gg-profile::after,
-.gg-profile::before {
-  display: block;
-  box-sizing: border-box;
-  border: 2px solid;
-  border-radius: 159px;
-}
-.gg-profile {
-  overflow: hidden;
-  transform: scale(var(--ggs, 1));
-  width: 35px;
-  height: 35px;
-  position: relative;
-}
-.gg-profile::after,
-.gg-profile::before {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 8px;
-  width: 13px;
-  height: 13px;
-}
-.gg-profile::after {
-  border-radius: 318px;
-  top: 17px;
-  left: 0px;
-  width: 29px;
-  height: 29px;
+  &-oni {
+    @apply text-dribbble bg-dribbble bg-opacity-[15%] hover:bg-opacity-[25%] rounded-[12.8px] py-2 px-8 text-lg transition-all font-semibold;
+  }
 }
