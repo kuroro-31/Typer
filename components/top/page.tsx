@@ -18,6 +18,8 @@ export default function Home() {
   const [timer, setTimer] = useState(120);
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [successStreak, setSuccessStreak] = useState(0);
   const wordTimer = useRef<NodeJS.Timeout | null>(null);
 
   const startAudio = useMemo(() => {
@@ -34,13 +36,21 @@ export default function Home() {
 
   useEffect(() => {
     if (screen === "start") {
-      startAudio.play();
+      if (isMuted) {
+        startAudio.pause();
+      } else {
+        startAudio.play();
+      }
       gameAudio.pause();
     } else if (screen === "level" && gameStarted) {
       startAudio.pause();
-      gameAudio.play();
+      if (isMuted) {
+        gameAudio.pause();
+      } else {
+        gameAudio.play();
+      }
     }
-  }, [gameAudio, screen, startAudio, gameStarted]);
+  }, [gameAudio, screen, startAudio, gameStarted, isMuted]);
 
   useEffect(() => {
     const handleKeyDown = (event: { code: string }) => {
@@ -125,16 +135,22 @@ export default function Home() {
   );
 
   const LevelScreen = () => (
-    <div>
-      <p>スペースキーを押してスタート</p>
+    <div className="h-full flex flex-col p-4">
       {gameInProgress && (
-        <div className="">
+        <div className="mx-auto my-8 text-center">
           <p>{currentWord?.furigana}</p>
-          <p>{currentWord?.kanji}</p>
+          <p className="text-2xl font-semibold">{currentWord?.kanji}</p>
           <p>{currentWord?.romaji}</p>
         </div>
       )}
-      {gameInProgress && <p>Score: {score}</p>}
+
+      {!gameInProgress && <p>スペースキーを押してスタート</p>}
+
+      {gameInProgress && <p className="mt-auto">Score: {score}</p>}
+
+      <button onClick={() => setIsMuted(!isMuted)}>
+        {isMuted ? "Unmute" : "Mute"}
+      </button>
     </div>
   );
 
@@ -186,7 +202,11 @@ export default function Home() {
       wordTimer.current = setInterval(() => {
         const newWord = wordList[Math.floor(Math.random() * wordList.length)];
         setCurrentWord(newWord);
-        setScore((prevScore) => prevScore + 1);
+        setScore((prevScore) => prevScore + newWord.kanji.length);
+        setSuccessStreak((prevStreak) => prevStreak + 1);
+        if (successStreak !== 0 && successStreak % 10 === 0) {
+          setTimer((prevTimer) => prevTimer + 1);
+        }
       }, 5000);
     }
 
@@ -195,18 +215,23 @@ export default function Home() {
         clearInterval(wordTimer.current);
       }
     };
-  }, [gameStarted, gameInProgress, difficulty]);
+  }, [gameStarted, gameInProgress, difficulty, successStreak]);
 
   return (
     <div className="mx-auto flex items-center">
       {/* ゲームの中身 */}
-      <div className="w-[500px] h-[420px] bg-white rounded-[17px] p-4">
-        {screen !== "home" && (
-          <button onClick={() => setScreen("home")}>戻る</button>
-        )}
-        {screen === "home" && <HomeScreen />}
-        {screen === "start" && <StartScreen />}
-        {screen === "level" && <LevelScreen />}
+      <div className="w-[500px] h-[420px] bg-white rounded-[17px] flex flex-col">
+        <div className="">
+          {screen === "home" && <HomeScreen />}
+          {screen === "start" && <StartScreen />}
+          {screen === "level" && <LevelScreen />}
+        </div>
+
+        <div className="p-4 flex justify-end mt-auto">
+          {screen !== "home" && (
+            <button onClick={() => setScreen("home")}>戻る</button>
+          )}
+        </div>
       </div>
     </div>
   );
