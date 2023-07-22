@@ -65,12 +65,15 @@ export default function Home() {
     } else if (screen === "level" && gameStarted) {
       startAudio.pause();
       gameAudio.play();
+    } else if (screen === "home" || screen === "result") {
+      startAudio.pause();
+      gameAudio.pause();
     }
   }, [gameAudio, screen, startAudio, gameStarted]);
 
   useEffect(() => {
     const handleKeyDown = (event: { code: string }) => {
-      if (event.code === "Space") {
+      if (event.code === "Space" && screen === "level") {
         setGameStarted(true);
         setGameInProgress(true);
         // Select a new word based on the difficulty
@@ -101,7 +104,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [difficulty]);
+  }, [difficulty, screen]);
 
   // 追加: ユーザーがキーボードで文字を入力したときの処理
   useEffect(() => {
@@ -253,12 +256,30 @@ export default function Home() {
           </p>
         </div>
       )}
-      {!gameInProgress && (
+      {!gameInProgress && screen === "level" && (
         <p className="flex justify-center">スペースキーを押してスタート</p>
       )}
       {gameInProgress && <p className="mt-auto">Score: {score}</p>}
-      <p className="mt-auto">Time left: {timer}</p>{" "}
-      {/* Display remaining time */}
+      <p className="mt-auto">残り: {timer}秒</p>
+    </div>
+  );
+
+  const ResultScreen = () => (
+    <div className="h-full flex flex-col p-4">
+      <div className="mx-auto my-8 text-center">
+        <p>ゲーム終了！</p>
+        <p className="text-2xl font-semibold">スコア: {score}</p>
+        <button
+          onClick={() => {
+            // SNSシェア機能を追加
+            const url = `https://twitter.com/intent/tweet?text=私のスコアは${score}点でした！&url=${window.location.href}&hashtags=タイピングゲーム`;
+            window.open(url, "_blank");
+          }}
+          className="bg-twitter text-white px-4 py-2 rounded-md mt-4"
+        >
+          Twitterでシェア
+        </button>
+      </div>
     </div>
   );
 
@@ -272,6 +293,7 @@ export default function Home() {
       // End the game when the timer reaches 0
       if (timer === 0) {
         setGameInProgress(false);
+        setScreen("result"); // ゲーム終了時に結果画面に遷移
         clearInterval(timerId);
         if (wordTimer.current) {
           clearInterval(wordTimer.current);
@@ -290,11 +312,25 @@ export default function Home() {
           {screen === "home" && <HomeScreen />}
           {screen === "start" && <StartScreen />}
           {screen === "level" && <LevelScreen />}
+          {screen === "result" && <ResultScreen />} {/* 結果画面を追加 */}
         </div>
 
         <div className="p-4 flex justify-end mt-auto">
           {screen !== "home" && (
-            <button onClick={() => setScreen("home")}>戻る</button>
+            <button
+              onClick={() => {
+                setScreen("home");
+                setGameStarted(false);
+                setGameInProgress(null);
+                setTimer(60);
+                setScore(0);
+                setCurrentWord(null);
+                setTypedWord("");
+                setSuccessStreak(0);
+              }}
+            >
+              戻る
+            </button>
           )}
         </div>
       </div>
