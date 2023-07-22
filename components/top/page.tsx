@@ -15,7 +15,7 @@ export default function Home() {
     "easy" | "normal" | "hard" | "oni" | null
   >(null);
   const [gameInProgress, setGameInProgress] = useState<boolean | null>(null);
-  const [timer, setTimer] = useState(120);
+  const [timer, setTimer] = useState(60);
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [typedWord, setTypedWord] = useState(""); // 追加: ユーザーがタイプしたワードを追跡
@@ -30,7 +30,31 @@ export default function Home() {
 
   const gameAudio = useMemo(() => {
     const audio = new Audio("/game.mp3");
-    audio.volume = 0.25; // 50% volume
+    audio.volume = 0.1; // 50% volume
+    return audio;
+  }, []);
+
+  const typeAudio = useMemo(() => {
+    const audio = new Audio("/type.mov");
+    audio.volume = 1; // 50% volume
+    return audio;
+  }, []);
+
+  const successAudio = useMemo(() => {
+    const audio = new Audio("/success.mov");
+    audio.volume = 0.4; // 50% volume
+    return audio;
+  }, []);
+
+  const missAudio = useMemo(() => {
+    const audio = new Audio("/miss.mov");
+    audio.volume = 0.5; // 50% volume
+    return audio;
+  }, []);
+
+  const bonusAudio = useMemo(() => {
+    const audio = new Audio("/bonus.mov");
+    audio.volume = 0.5; // 50% volume
     return audio;
   }, []);
 
@@ -85,8 +109,16 @@ export default function Home() {
       if (gameInProgress) {
         const nextTypedWord = typedWord + event.key;
         if (currentWord?.romaji.startsWith(nextTypedWord)) {
+          typeAudio.play(); // Play typing sound
           setTypedWord(nextTypedWord);
+          setSuccessStreak((prevStreak) => prevStreak + 1); // Increment success streak
+          if (successStreak >= 10) {
+            bonusAudio.play(); // Play bonus sound
+            setTimer((prevTimer) => prevTimer + 1); // Add bonus time
+            setSuccessStreak(0); // Reset success streak
+          }
           if (nextTypedWord === currentWord?.romaji) {
+            successAudio.play(); // Play success sound
             setScore((prevScore) => prevScore + 1);
             setTypedWord("");
             // Select a new word based on the difficulty
@@ -111,6 +143,10 @@ export default function Home() {
               wordList[Math.floor(Math.random() * wordList.length)];
             setCurrentWord(newWord);
           }
+        } else {
+          missAudio.play(); // Play miss sound
+          setTimer((prevTimer) => Math.max(prevTimer - 1, 0)); // Subtract time for miss
+          setSuccessStreak(0); // Reset success streak
         }
       }
     };
@@ -120,7 +156,17 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [gameInProgress, currentWord, typedWord, difficulty]);
+  }, [
+    gameInProgress,
+    currentWord,
+    typedWord,
+    difficulty,
+    typeAudio,
+    successAudio,
+    missAudio,
+    bonusAudio,
+    successStreak,
+  ]);
 
   const HomeScreen = () => (
     <div className="flex justify-center">
@@ -207,10 +253,12 @@ export default function Home() {
           </p>
         </div>
       )}
-
-      {!gameInProgress && <p>スペースキーを押してスタート</p>}
-
+      {!gameInProgress && (
+        <p className="flex justify-center">スペースキーを押してスタート</p>
+      )}
       {gameInProgress && <p className="mt-auto">Score: {score}</p>}
+      <p className="mt-auto">Time left: {timer}</p>{" "}
+      {/* Display remaining time */}
     </div>
   );
 
