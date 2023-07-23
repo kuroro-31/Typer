@@ -147,44 +147,6 @@ export default function Home() {
     wordStartTime.current = new Date(); // ワード開始時間を記録
   }, [difficulty]);
 
-  // ユーザーがキーボードで文字を入力したときの処理
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (gameInProgress && event.key.length === 1) {
-        const newTypedWord = typedWord + event.key;
-        if (currentWord?.romaji.startsWith(newTypedWord)) {
-          setTypedWord(newTypedWord);
-          typeAudio.play(); // キーボード入力時の音声を再生
-
-          if (newTypedWord === currentWord?.romaji) {
-            // ユーザーが現在のワードを全て入力した場合
-            successAudio.play(); // 全て一致したときの音声を再生
-            setScore((prevScore) => prevScore + 1); // スコアを更新
-            setTypedWord(""); // 入力された文字をリセット
-            selectNewWord(); // 新しいワードを選択
-          }
-        } else {
-          setTimer((prevTimer) => prevTimer - 1); // タイマーを1秒減らす
-          missAudio.play(); // 間違いの音声を再生
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [
-    gameInProgress,
-    currentWord,
-    typedWord,
-    selectNewWord,
-    typeAudio,
-    successAudio,
-    missAudio,
-  ]);
-
   // 5秒間で1ワードの全ての文字をキーボード入力できなかったら、public/failure.mp3を流して次のワードを出す
   useEffect(() => {
     if (gameInProgress) {
@@ -221,15 +183,29 @@ export default function Home() {
     selectNewWord,
   ]);
 
+  // ユーザーがキーボードで文字を入力したときの処理
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (gameInProgress && event.key.length === 1) {
-        setTypedWord((prevTypedWord) => prevTypedWord + event.key);
-        if (typedWord.length + 1 === currentWord?.romaji.length) {
-          // ユーザーが現在のワードを全て入力した場合
-          setScore((prevScore) => prevScore + 1); // スコアを更新
-          setTypedWord(""); // 入力された文字をリセット
-          selectNewWord(); // 新しいワードを選択
+        const newTypedWord = typedWord + event.key;
+        if (currentWord?.romaji.startsWith(newTypedWord)) {
+          setTypedWord(newTypedWord);
+          typeAudio.play(); // キーボード入力時の音声を再生
+
+          if (newTypedWord === currentWord?.romaji) {
+            // ユーザーが現在のワードを全て入力した場合
+            successAudio.play(); // 全て一致したときの音声を再生
+            setScore((prevScore) => prevScore + 1); // スコアを更新
+            setTypedWord(""); // 入力された文字をリセット
+            selectNewWord(); // 新しいワードを選択
+          }
+        } else if (currentWord?.romaji.startsWith(event.key)) {
+          // ユーザーが間違った文字を入力したが、その文字が次の正しい文字である場合
+          setTypedWord(event.key);
+          typeAudio.play(); // キーボード入力時の音声を再生
+        } else {
+          setTimer((prevTimer) => prevTimer - 1); // タイマーを1秒減らす
+          missAudio.play(); // 間違いの音声を再生
         }
       }
     };
@@ -239,7 +215,15 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [gameInProgress, currentWord, typedWord, selectNewWord]);
+  }, [
+    gameInProgress,
+    currentWord,
+    typedWord,
+    selectNewWord,
+    typeAudio,
+    successAudio,
+    missAudio,
+  ]);
 
   const HomeScreen = () => (
     <div className="flex justify-center">
