@@ -209,13 +209,13 @@ export default function Home() {
             // 連続成功文字数を更新
             setSuccessCharStreak((prevStreak) => prevStreak + 1);
 
-            // 10文字連続で成功した場合、タイマーを1秒加算
-            if (successCharStreak % 10 === 9) {
+            // 50文字ごとに加算する秒数がリセットされ、その間は10文字ごとに1秒ずつ加算される
+            if (successCharStreak % 50 === 49) {
               new Audio("/bonus.mp3").play();
-              setTimer(
-                (prevTimer) =>
-                  prevTimer + Math.floor(successCharStreak / 10) + 1
-              );
+              setTimer((prevTimer) => prevTimer + 5);
+            } else if (successCharStreak % 10 === 9) {
+              new Audio("/bonus.mp3").play();
+              setTimer((prevTimer) => prevTimer + 1);
             }
           }
         } else if (currentWord?.romaji.startsWith(event.key)) {
