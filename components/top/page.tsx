@@ -26,7 +26,7 @@ export default function Home() {
 
   const startAudio = useMemo(() => {
     const audio = new Audio("/start.mp3");
-    audio.volume = 0.4; // 50% volume
+    audio.volume = 1; // 50% volume
     return audio;
   }, []);
 
@@ -62,19 +62,19 @@ export default function Home() {
 
   const failureAudio = useMemo(() => {
     const audio = new Audio("/failure.mp3");
-    audio.volume = 0.5; // 50% volume
+    audio.volume = 1; // 50% volume
     return audio;
   }, []);
 
   const resultAudio = useMemo(() => {
     const audio = new Audio("/result.mp3");
-    audio.volume = 0.5; // 50% volume
+    audio.volume = 1; // 50% volume
     return audio;
   }, []);
 
   const minusAudio = useMemo(() => {
     const audio = new Audio("/minus.mp3");
-    audio.volume = 0.5; // 50% volume
+    audio.volume = 1; // 50% volume
     return audio;
   }, []);
 
@@ -456,7 +456,7 @@ export default function Home() {
             stopAudio.play(); // 残り時間が0になったら、stop.mp3を再生する
             return 0; // 残り時間が0を通り過ぎてマイナスにならないようにする
           } else if (prevTimer === 4) {
-            countdownAudio.play(); // 残り3秒になったら、countdown.mp3を再生する
+            new Audio("/countdown.mov").play();
           }
           return prevTimer - 1;
         });
