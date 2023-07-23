@@ -230,6 +230,12 @@ export default function Home() {
       if (event.key === "Escape") {
         setScreen("level");
         setGameInProgress(false);
+        setGameStarted(false); // ゲーム開始状態をリセット
+        setTimer(60); // タイマーをリセット
+        setScore(0); // スコアをリセット
+        setCurrentWord(null); // 現在のワードをリセット
+        setTypedWord(""); // 入力されたワードをリセット
+        setSuccessStreak(0); // 連続成功回数をリセット
         // すべての音声を停止
         [
           startAudio,
