@@ -74,7 +74,6 @@ export default function Home() {
   useEffect(() => {
     if (screen === "start") {
       startAudio.currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
-      startAudio.play();
       gameAudio.pause();
     } else if (screen === "level" && gameStarted) {
       gameAudio.currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
@@ -90,7 +89,7 @@ export default function Home() {
       if (event.code === "Space" && screen === "level") {
         setGameStarted(true);
         setGameInProgress(true);
-        // startAudio.play(); // スペースキーをクリックした後にstart.mp3を流す
+        startAudio.play(); // スペースキーをクリックした後にstart.mp3を流す
 
         // Select a new word based on the difficulty
         let wordList: string | any[];
@@ -205,7 +204,7 @@ export default function Home() {
           typeAudio.play(); // キーボード入力時の音声を再生
         } else {
           setTimer((prevTimer) => prevTimer - 1); // タイマーを1秒減らす
-          missAudio.play(); // 間違いの音声を再生
+          new Audio("/miss.mov").play(); // 新しいAudioインスタンスを作成して間違いの音声を再生
         }
       }
     };
