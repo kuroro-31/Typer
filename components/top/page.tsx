@@ -72,6 +72,25 @@ export default function Home() {
     return audio;
   }, []);
 
+  const minusAudio = useMemo(() => {
+    const audio = new Audio("/minus.mp3");
+    audio.volume = 0.5; // 50% volume
+    return audio;
+  }, []);
+
+  const stopAudio = useMemo(() => {
+    const audio = new Audio("/stop.mp3");
+    audio.volume = 0.5; // 50% volume
+    return audio;
+  }, []);
+
+  const countdownAudio = useMemo(() => {
+    const audio = new Audio("/countdown.mov");
+    audio.volume = 0.5; // 50% volume
+    return audio;
+  }, []);
+
+  // スタート画面での音楽の処理
   useEffect(() => {
     if (screen === "start") {
       startAudio.currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
@@ -85,6 +104,7 @@ export default function Home() {
     }
   }, [gameAudio, screen, startAudio, gameStarted]);
 
+  // スペースキーを押した時の処理
   useEffect(() => {
     const handleKeyDown = (event: { code: string }) => {
       if (event.code === "Space" && screen === "level") {
@@ -426,27 +446,44 @@ export default function Home() {
     </div>
   );
 
+  // ゲーム中のタイマー処理
   useEffect(() => {
     if (gameStarted && gameInProgress) {
       // Start the game timer
       const timerId = setInterval(() => {
-        setTimer((prevTimer) => prevTimer - 1);
+        setTimer((prevTimer) => {
+          if (prevTimer <= 0) {
+            stopAudio.play(); // 残り時間が0になったら、stop.mp3を再生する
+            return 0; // 残り時間が0を通り過ぎてマイナスにならないようにする
+          } else if (prevTimer === 4) {
+            countdownAudio.play(); // 残り3秒になったら、countdown.mp3を再生する
+          }
+          return prevTimer - 1;
+        });
       }, 1000);
 
+      return () => clearInterval(timerId);
+    }
+  }, [gameStarted, gameInProgress, stopAudio, countdownAudio]);
+
+  // ゲーム終了時の処理
+  useEffect(() => {
+    if (gameStarted) {
       // End the game when the timer reaches 0
-      if (timer === 0) {
+      if (timer <= 0) {
         setGameInProgress(false);
         setScreen("result"); // ゲーム終了時に結果画面に遷移
-        resultAudio.play(); // 結果発表の画面になったら、public/result.mp3を再生する
-        clearInterval(timerId);
+        if (score < 0) {
+          minusAudio.play(); // スコアがマイナスの場合、minus.mp3を再生する
+        } else {
+          resultAudio.play(); // スコアが0以上の場合、result.mp3を再生する
+        }
         if (wordTimer.current) {
           clearInterval(wordTimer.current);
         }
       }
-
-      return () => clearInterval(timerId);
     }
-  }, [gameStarted, gameInProgress, timer, resultAudio]);
+  }, [gameStarted, timer, resultAudio, minusAudio, score]);
 
   return (
     <div className="mx-auto flex items-center">
