@@ -210,10 +210,12 @@ export default function Home() {
             setSuccessCharStreak((prevStreak) => prevStreak + 1);
 
             // 10文字連続で成功した場合、タイマーを1秒加算
-            if (successCharStreak >= 9) {
+            if (successCharStreak % 10 === 9) {
               new Audio("/bonus.mp3").play();
-              setTimer((prevTimer) => prevTimer + 1);
-              setSuccessCharStreak(0); // 連続成功文字数をリセット
+              setTimer(
+                (prevTimer) =>
+                  prevTimer + Math.floor(successCharStreak / 10) + 1
+              );
             }
           }
         } else if (currentWord?.romaji.startsWith(event.key)) {
