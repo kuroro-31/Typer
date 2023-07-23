@@ -88,10 +88,10 @@ export default function Home() {
   useEffect(() => {
     const handleKeyDown = (event: { code: string }) => {
       if (event.code === "Space" && screen === "level") {
-        // スペースキーからエンターキーに変更
         setGameStarted(true);
         setGameInProgress(true);
-        startAudio.play(); // エンターキーをクリックした後にstart.mp3を流す
+        // startAudio.play(); // スペースキーをクリックした後にstart.mp3を流す
+
         // Select a new word based on the difficulty
         let wordList: string | any[];
         switch (difficulty) {
@@ -190,7 +190,7 @@ export default function Home() {
         const newTypedWord = typedWord + event.key;
         if (currentWord?.romaji.startsWith(newTypedWord)) {
           setTypedWord(newTypedWord);
-          typeAudio.play(); // キーボード入力時の音声を再生
+          new Audio("/type.mov").play(); // 新しいAudioインスタンスを作成してキーボード入力時の音声を再生
 
           if (newTypedWord === currentWord?.romaji) {
             // ユーザーが現在のワードを全て入力した場合
@@ -223,6 +223,45 @@ export default function Home() {
     typeAudio,
     successAudio,
     missAudio,
+  ]);
+
+  // ゲーム中のescを押した時の処理
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setScreen("level");
+        setGameInProgress(false);
+        // すべての音声を停止
+        [
+          startAudio,
+          gameAudio,
+          typeAudio,
+          successAudio,
+          missAudio,
+          bonusAudio,
+          failureAudio,
+          resultAudio,
+        ].forEach((audio) => {
+          audio.pause();
+          audio.currentTime = 0;
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleEsc);
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [
+    startAudio,
+    gameAudio,
+    typeAudio,
+    successAudio,
+    missAudio,
+    bonusAudio,
+    failureAudio,
+    resultAudio,
   ]);
 
   const HomeScreen = () => (
