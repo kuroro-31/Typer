@@ -20,6 +20,7 @@ export default function Home() {
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [typedWord, setTypedWord] = useState(""); // ユーザーがタイプしたワードを追跡
   const [successStreak, setSuccessStreak] = useState(0); // 連続成功回数を追跡
+  const [successCharStreak, setSuccessCharStreak] = useState(0); // 連続成功文字数を追跡
   const wordTimer = useRef<NodeJS.Timeout | null>(null);
   const wordStartTime = useRef<Date | null>(null); // ワード開始時間を追跡
 
@@ -191,20 +192,43 @@ export default function Home() {
           setTypedWord(newTypedWord);
           new Audio("/type.mov").play(); // 新しいAudioインスタンスを作成してキーボード入力時の音声を再生
 
+          // キーボード入力した文字が現在のワードローマ字と一致した場合
           if (newTypedWord === currentWord?.romaji) {
             // ユーザーが現在のワードを全て入力した場合
             successAudio.play(); // 全て一致したときの音声を再生
-            setScore((prevScore) => prevScore + 1); // スコアを更新
+            setScore((prevScore) => prevScore + 1); // スコアを更新（1ワード成功につき1点）
             setTypedWord(""); // 入力された文字をリセット
             selectNewWord(); // 新しいワードを選択
+
+            // 連続成功回数を更新
+            setSuccessStreak((prevStreak) => prevStreak + 1);
+          } else {
+            // ユーザーが間違った文字を入力した場合、連続成功回数をリセット
+            setSuccessStreak(0);
+
+            // 連続成功文字数を更新
+            setSuccessCharStreak((prevStreak) => prevStreak + 1);
+
+            // 10文字連続で成功した場合、タイマーを1秒加算
+            if (successCharStreak >= 9) {
+              new Audio("/bonus.mp3").play();
+              setTimer((prevTimer) => prevTimer + 1);
+              setSuccessCharStreak(0); // 連続成功文字数をリセット
+            }
           }
         } else if (currentWord?.romaji.startsWith(event.key)) {
           // ユーザーが間違った文字を入力したが、その文字が次の正しい文字である場合
           setTypedWord(event.key);
           typeAudio.play(); // キーボード入力時の音声を再生
+
+          // 連続成功文字数をリセット
+          setSuccessCharStreak(0);
         } else {
           setTimer((prevTimer) => prevTimer - 1); // タイマーを1秒減らす
           new Audio("/miss.mov").play(); // 新しいAudioインスタンスを作成して間違いの音声を再生
+
+          // 連続成功文字数をリセット
+          setSuccessCharStreak(0);
         }
       }
     };
@@ -222,6 +246,8 @@ export default function Home() {
     typeAudio,
     successAudio,
     missAudio,
+    successStreak,
+    successCharStreak,
   ]);
 
   // ゲーム中のescを押した時の処理
@@ -359,12 +385,23 @@ export default function Home() {
         </div>
       )}
       {!gameInProgress && screen === "level" && (
-        <p className="flex justify-center">スペースキーを押してスタート</p>
+        <div className="">
+          <p className="flex justify-center text-xl">
+            タイピングではキーボードを使います
+          </p>
+          <p className="flex justify-center text-lg mt-4">
+            スペースキーを押したらスタート！
+          </p>
+          <p className="mt-4">
+            ゲーム中に「ESCキー」を押すと、スタート画面に戻ります
+          </p>
+        </div>
       )}
       {gameInProgress && (
         <div className="">
           <p className="mt-auto">Score: {score}</p>
           <p className="mt-auto">残り: {timer}秒</p>
+          <p className="mt-auto">連続成功文字数: {successCharStreak}</p>
         </div>
       )}
     </div>
