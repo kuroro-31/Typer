@@ -23,6 +23,9 @@ export default function Home() {
   const [successCharStreak, setSuccessCharStreak] = useState(0); // 連続成功文字数を追跡
   const wordTimer = useRef<NodeJS.Timeout | null>(null);
   const wordStartTime = useRef<Date | null>(null); // ワード開始時間を追跡
+  const [successCharStreakForBonus, setSuccessCharStreakForBonus] = useState(0); // ボーナス用の連続成功文字数を追跡
+  const [missCount, setMissCount] = useState(0); // ミス回数を追跡
+  const [bonusSeconds, setBonusSeconds] = useState(0); // ボーナス秒数を追跡
 
   const startAudio = useMemo(() => {
     const audio = new Audio("/start.mp3");
@@ -228,14 +231,16 @@ export default function Home() {
 
             // 連続成功文字数を更新
             setSuccessCharStreak((prevStreak) => prevStreak + 1);
+            setSuccessCharStreakForBonus((prevStreak) => prevStreak + 1);
 
-            // 50文字ごとに加算する秒数がリセットされ、その間は10文字ごとに1秒ずつ加算される
-            if (successCharStreak % 50 === 49) {
+            // 10文字ごとに加算する秒数がリセットされ、その間は10文字ごとに1秒ずつ加算される
+            if (successCharStreakForBonus % 10 === 9) {
               new Audio("/bonus.mp3").play();
-              setTimer((prevTimer) => prevTimer + 5);
-            } else if (successCharStreak % 10 === 9) {
-              new Audio("/bonus.mp3").play();
-              setTimer((prevTimer) => prevTimer + 1);
+              setTimer(
+                (prevTimer) =>
+                  prevTimer + Math.floor(successCharStreakForBonus / 10)
+              );
+              setSuccessCharStreakForBonus(0); // 10文字ごとにボーナス用の連続成功文字数をリセット
             }
           }
         } else if (currentWord?.romaji.startsWith(event.key)) {
@@ -247,6 +252,7 @@ export default function Home() {
           setSuccessCharStreak(0);
         } else {
           setTimer((prevTimer) => prevTimer - 1); // タイマーを1秒減らす
+          setMissCount((prevMissCount) => prevMissCount + 1); // ミスタイピング回数を増やす
           new Audio("/miss.mov").play(); // 新しいAudioインスタンスを作成して間違いの音声を再生
 
           // 連続成功文字数をリセット
@@ -270,6 +276,7 @@ export default function Home() {
     missAudio,
     successStreak,
     successCharStreak,
+    successCharStreakForBonus,
   ]);
 
   // ゲーム中のescを押した時の処理
@@ -284,6 +291,10 @@ export default function Home() {
         setCurrentWord(null); // 現在のワードをリセット
         setTypedWord(""); // 入力されたワードをリセット
         setSuccessStreak(0); // 連続成功回数をリセット
+        setSuccessCharStreak(0); // 連続成功文字数をリセット
+        setSuccessCharStreakForBonus(0); // ボーナス用の連続成功文字数をリセット
+        setMissCount(0); // ミスタイピング回数を0にリセット
+
         // すべての音声を停止
         [
           startAudio,
@@ -383,10 +394,41 @@ export default function Home() {
     </div>
   );
 
+  // プログレスバーとポップアップを表示するコンポーネント
+  const ProgressBarAndPopup = ({ successCharStreakForBonus }) => {
+    const [showPopup, setShowPopup] = useState(false);
+    const [bonusSeconds, setBonusSeconds] = useState(0);
+
+    useEffect(() => {
+      if (successCharStreakForBonus % 10 === 9) {
+        setShowPopup(true);
+        setBonusSeconds(Math.floor(successCharStreakForBonus / 10));
+        setTimeout(() => setShowPopup(false), 2000); // 2秒後にポップアップを非表示にする
+      }
+    }, [successCharStreakForBonus]);
+
+    return (
+      <div>
+        <div
+          style={{
+            height: "20px",
+            width: `${(successCharStreakForBonus % 10) * 10}%`,
+            backgroundColor: "blue",
+          }}
+        />
+        {showPopup && <div>{bonusSeconds}秒加算されました！</div>}
+      </div>
+    );
+  };
+
+  // ゲーム中の画面
   const LevelScreen = () => (
     <div className="h-full flex flex-col items-center justify-center p-4">
       {gameInProgress && (
         <div className="mx-auto my-8 text-center">
+          <ProgressBarAndPopup
+            successCharStreakForBonus={successCharStreakForBonus}
+          />
           <p>{currentWord?.furigana}</p>
           <p className="text-2xl font-semibold">{currentWord?.kanji}</p>
           <p>
@@ -424,6 +466,8 @@ export default function Home() {
           <p className="mt-auto">Score: {score}</p>
           <p className="mt-auto">残り: {timer}秒</p>
           <p className="mt-auto">連続成功文字数: {successCharStreak}</p>
+          <p>ミスタイピング数: {missCount}</p>
+          <p>ボーナス秒数: {bonusSeconds}</p>
         </div>
       )}
     </div>
@@ -456,7 +500,7 @@ export default function Home() {
             stopAudio.play(); // 残り時間が0になったら、stop.mp3を再生する
             return 0; // 残り時間が0を通り過ぎてマイナスにならないようにする
           } else if (prevTimer === 4) {
-            new Audio("/countdown.mov").play();
+            countdownAudio.play();
           }
           return prevTimer - 1;
         });
@@ -484,7 +528,6 @@ export default function Home() {
       }
     }
   }, [gameStarted, timer, resultAudio, minusAudio, score]);
-
   return (
     <div className="mx-auto flex items-center">
       {/* ゲームの中身 */}
