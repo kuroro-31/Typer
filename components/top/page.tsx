@@ -229,6 +229,10 @@ export default function Home() {
           setTypedWord(newTypedWord);
           new Audio("/type.mov").play(); // 新しいAudioインスタンスを作成してキーボード入力時の音声を再生
 
+          // 連続成功文字数を更新
+          setSuccessCharStreak((prevStreak) => prevStreak + 1);
+          setSuccessCharStreakForBonus((prevStreak) => prevStreak + 1);
+
           // キーボード入力した文字が現在のワードローマ字と一致した場合
           if (newTypedWord === currentWord?.romaji) {
             // ユーザーが現在のワードを全て入力した場合
@@ -239,13 +243,20 @@ export default function Home() {
 
             // 連続成功回数を更新
             setSuccessStreak((prevStreak) => prevStreak + 1);
+
+            if (
+              successCharStreakForBonus % 10 === 0 &&
+              successCharStreakForBonus !== 0
+            ) {
+              const bonusSecondsToAdd = Math.floor(
+                successCharStreakForBonus / 10
+              );
+              setTimer((prevTimer) => prevTimer + bonusSecondsToAdd); // ボーナス秒数を加算
+              setBonusSeconds((prevBonus) => prevBonus + bonusSecondsToAdd); // 累計のボーナス秒数を更新
+            }
           } else {
             // ユーザーが間違った文字を入力した場合、連続成功回数をリセット
             setSuccessStreak(0);
-
-            // 連続成功文字数を更新
-            setSuccessCharStreak((prevStreak) => prevStreak + 1);
-            setSuccessCharStreakForBonus((prevStreak) => prevStreak + 1);
           }
         } else if (currentWord?.romaji.startsWith(event.key)) {
           // ユーザーが間違った文字を入力したが、その文字が次の正しい文字である場合
@@ -254,11 +265,13 @@ export default function Home() {
 
           // 連続成功文字数をリセット
           setSuccessCharStreak(0);
+          setSuccessCharStreakForBonus(0);
         } else {
           setTimer((prevTimer) => prevTimer - 1); // タイマーを1秒減らす
 
           // 連続成功文字数をリセット
           setSuccessCharStreak(0);
+          setSuccessCharStreakForBonus(0);
         }
       }
     };
@@ -397,35 +410,36 @@ export default function Home() {
   );
 
   // プログレスバーとポップアップを表示するコンポーネント
-  const ProgressBarAndPopup = ({ successCharStreak }) => {
+  const ProgressBarAndPopup = ({
+    successCharStreakForBonus,
+  }: {
+    successCharStreakForBonus: number;
+  }) => {
     const [showPopup, setShowPopup] = useState(false);
     const [currentBonusSeconds, setCurrentBonusSeconds] = useState(0); // 現在のボーナス秒数を保持するステート変数
-    const [totalBonusSeconds, setTotalBonusSeconds] = useState(0); // 累計のボーナス秒数を保持するステート変数
 
     useEffect(() => {
-      if (successCharStreak % 10 === 9) {
+      if (
+        successCharStreakForBonus % 10 === 0 &&
+        successCharStreakForBonus !== 0
+      ) {
         setShowPopup(true);
-        const bonusSecondsToAdd = Math.floor(successCharStreak / 10);
+        const bonusSecondsToAdd = Math.floor(successCharStreakForBonus / 10);
         setCurrentBonusSeconds(bonusSecondsToAdd); // 現在のボーナス秒数を更新
-        setTotalBonusSeconds((prevTotal) => prevTotal + bonusSecondsToAdd); // 累計のボーナス秒数を更新
         setTimeout(() => setShowPopup(false), 2000); // 2秒後にポップアップを非表示にする
-
-        // ボーナス秒数を加算
-        setTimer((prevTimer) => prevTimer + bonusSecondsToAdd);
       }
-    }, [successCharStreak, setTimer]);
+    }, [successCharStreakForBonus]);
 
     return (
       <div>
         <div
           style={{
             height: "20px",
-            width: `${(successCharStreak % 10) * 10}%`,
+            width: `${(successCharStreakForBonus % 10) * 10}%`,
             backgroundColor: "blue",
           }}
         />
         {showPopup && <div>{currentBonusSeconds}秒加算されました！</div>}
-        <p>ボーナス秒数: {totalBonusSeconds}</p>
       </div>
     );
   };
@@ -435,7 +449,9 @@ export default function Home() {
     <div className="h-full flex flex-col items-center justify-center p-4">
       {gameInProgress && (
         <div className="mx-auto my-8 text-center">
-          <ProgressBarAndPopup successCharStreak={successCharStreak} />
+          <ProgressBarAndPopup
+            successCharStreakForBonus={successCharStreakForBonus}
+          />
           <p>{currentWord?.furigana}</p>
           <p className="text-2xl font-semibold">{currentWord?.kanji}</p>
           <p>
