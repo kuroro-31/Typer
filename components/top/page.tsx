@@ -1,5 +1,12 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { Word } from "@/types/word";
 
@@ -23,7 +30,9 @@ export default function Home() {
   const [successCharStreak, setSuccessCharStreak] = useState(0); // 連続成功文字数を追跡
   const wordTimer = useRef<NodeJS.Timeout | null>(null);
   const wordStartTime = useRef<Date | null>(null); // ワード開始時間を追跡
-  const [successCharStreakForBonus, setSuccessCharStreakForBonus] = useState(0); // ボーナス用の連続成功文字数を追跡
+  // ボーナス用の連続成功文字数を追跡するためのステート変数
+  const [successCharStreakForBonus, setSuccessCharStreakForBonus] =
+    useState<number>(0);
   const [missCount, setMissCount] = useState(0); // ミス回数を追跡
   const [bonusSeconds, setBonusSeconds] = useState(0); // ボーナス秒数を追跡
 
@@ -92,6 +101,11 @@ export default function Home() {
     audio.volume = 0.5; // 50% volume
     return audio;
   }, []);
+
+  // ボーナス用の連続成功文字数をリセット
+  const resetBonusStreak = () => {
+    setSuccessCharStreakForBonus(0);
+  };
 
   // スタート画面での音楽の処理
   useEffect(() => {
@@ -208,7 +222,7 @@ export default function Home() {
 
   // ユーザーがキーボードで文字を入力したときの処理
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: { key: any[] | SetStateAction<string> }) => {
       if (gameInProgress && event.key.length === 1) {
         const newTypedWord = typedWord + event.key;
         if (currentWord?.romaji.startsWith(newTypedWord)) {
@@ -232,16 +246,6 @@ export default function Home() {
             // 連続成功文字数を更新
             setSuccessCharStreak((prevStreak) => prevStreak + 1);
             setSuccessCharStreakForBonus((prevStreak) => prevStreak + 1);
-
-            // 10文字ごとに加算する秒数がリセットされ、その間は10文字ごとに1秒ずつ加算される
-            if (successCharStreakForBonus % 10 === 9) {
-              new Audio("/bonus.mp3").play();
-              setTimer(
-                (prevTimer) =>
-                  prevTimer + Math.floor(successCharStreakForBonus / 10)
-              );
-              setSuccessCharStreakForBonus(0); // 10文字ごとにボーナス用の連続成功文字数をリセット
-            }
           }
         } else if (currentWord?.romaji.startsWith(event.key)) {
           // ユーザーが間違った文字を入力したが、その文字が次の正しい文字である場合
@@ -252,8 +256,6 @@ export default function Home() {
           setSuccessCharStreak(0);
         } else {
           setTimer((prevTimer) => prevTimer - 1); // タイマーを1秒減らす
-          setMissCount((prevMissCount) => prevMissCount + 1); // ミスタイピング回数を増やす
-          new Audio("/miss.mov").play(); // 新しいAudioインスタンスを作成して間違いの音声を再生
 
           // 連続成功文字数をリセット
           setSuccessCharStreak(0);
@@ -395,28 +397,35 @@ export default function Home() {
   );
 
   // プログレスバーとポップアップを表示するコンポーネント
-  const ProgressBarAndPopup = ({ successCharStreakForBonus }) => {
+  const ProgressBarAndPopup = ({ successCharStreak }) => {
     const [showPopup, setShowPopup] = useState(false);
-    const [bonusSeconds, setBonusSeconds] = useState(0);
+    const [currentBonusSeconds, setCurrentBonusSeconds] = useState(0); // 現在のボーナス秒数を保持するステート変数
+    const [totalBonusSeconds, setTotalBonusSeconds] = useState(0); // 累計のボーナス秒数を保持するステート変数
 
     useEffect(() => {
-      if (successCharStreakForBonus % 10 === 9) {
+      if (successCharStreak % 10 === 9) {
         setShowPopup(true);
-        setBonusSeconds(Math.floor(successCharStreakForBonus / 10));
+        const bonusSecondsToAdd = Math.floor(successCharStreak / 10);
+        setCurrentBonusSeconds(bonusSecondsToAdd); // 現在のボーナス秒数を更新
+        setTotalBonusSeconds((prevTotal) => prevTotal + bonusSecondsToAdd); // 累計のボーナス秒数を更新
         setTimeout(() => setShowPopup(false), 2000); // 2秒後にポップアップを非表示にする
+
+        // ボーナス秒数を加算
+        setTimer((prevTimer) => prevTimer + bonusSecondsToAdd);
       }
-    }, [successCharStreakForBonus]);
+    }, [successCharStreak, setTimer]);
 
     return (
       <div>
         <div
           style={{
             height: "20px",
-            width: `${(successCharStreakForBonus % 10) * 10}%`,
+            width: `${(successCharStreak % 10) * 10}%`,
             backgroundColor: "blue",
           }}
         />
-        {showPopup && <div>{bonusSeconds}秒加算されました！</div>}
+        {showPopup && <div>{currentBonusSeconds}秒加算されました！</div>}
+        <p>ボーナス秒数: {totalBonusSeconds}</p>
       </div>
     );
   };
@@ -426,9 +435,7 @@ export default function Home() {
     <div className="h-full flex flex-col items-center justify-center p-4">
       {gameInProgress && (
         <div className="mx-auto my-8 text-center">
-          <ProgressBarAndPopup
-            successCharStreakForBonus={successCharStreakForBonus}
-          />
+          <ProgressBarAndPopup successCharStreak={successCharStreak} />
           <p>{currentWord?.furigana}</p>
           <p className="text-2xl font-semibold">{currentWord?.kanji}</p>
           <p>
@@ -467,12 +474,13 @@ export default function Home() {
           <p className="mt-auto">残り: {timer}秒</p>
           <p className="mt-auto">連続成功文字数: {successCharStreak}</p>
           <p>ミスタイピング数: {missCount}</p>
-          <p>ボーナス秒数: {bonusSeconds}</p>
+          <p>ボーナス秒数: {bonusSeconds}</p> {/* 累計のボーナス秒数を表示 */}
         </div>
       )}
     </div>
   );
 
+  // ゲーム結果画面
   const ResultScreen = () => (
     <div className="h-full flex flex-col justify-center items-center p-4">
       <p>ゲーム終了！</p>
@@ -528,15 +536,16 @@ export default function Home() {
       }
     }
   }, [gameStarted, timer, resultAudio, minusAudio, score]);
+
+  /* ゲームの中身 */
   return (
     <div className="mx-auto flex items-center">
-      {/* ゲームの中身 */}
       <div className="w-[500px] h-[420px] bg-white rounded-[17px] flex flex-col">
         <div className="h-full flex justify-center items-center">
           {screen === "home" && <HomeScreen />}
           {screen === "start" && <StartScreen />}
           {screen === "level" && <LevelScreen />}
-          {screen === "result" && <ResultScreen />} {/* 結果画面を追加 */}
+          {screen === "result" && <ResultScreen />}
         </div>
 
         <div className="p-4 flex justify-end mt-auto">
@@ -551,6 +560,7 @@ export default function Home() {
                 setCurrentWord(null);
                 setTypedWord("");
                 setSuccessStreak(0);
+                resetBonusStreak();
               }}
             >
               戻る
