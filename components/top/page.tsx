@@ -48,24 +48,6 @@ export default function Home() {
     return audio;
   }, []);
 
-  const typeAudio = useMemo(() => {
-    const audio = new Audio("/type.mov");
-    audio.volume = 1; // 50% volume
-    return audio;
-  }, []);
-
-  const successAudio = useMemo(() => {
-    const audio = new Audio("/success.mov");
-    audio.volume = 0.4; // 50% volume
-    return audio;
-  }, []);
-
-  const missAudio = useMemo(() => {
-    const audio = new Audio("/miss.mov");
-    audio.volume = 0.5; // 50% volume
-    return audio;
-  }, []);
-
   const bonusAudio = useMemo(() => {
     const audio = new Audio("/bonus.mov");
     audio.volume = 0.5; // 50% volume
@@ -225,52 +207,37 @@ export default function Home() {
     const handleKeyDown = (event: { key: any[] | SetStateAction<string> }) => {
       if (gameInProgress && event.key.length === 1) {
         const newTypedWord = typedWord + event.key;
-        if (currentWord?.romaji.startsWith(newTypedWord)) {
-          setTypedWord(newTypedWord);
-          new Audio("/type.mov").play(); // 新しいAudioインスタンスを作成してキーボード入力時の音声を再生
 
-          // 連続成功文字数を更新
+        if (newTypedWord === currentWord?.romaji) {
+          // ユーザーが現在のワードを全て入力した場合
+          setTypedWord("");
+          new Audio("/success.mov").play();
+          // ... (その他の成功時の処理)
+          setScore((prevScore) => prevScore + 1);
+          selectNewWord();
+          setSuccessStreak((prevStreak) => prevStreak + 1);
+
+          if (
+            successCharStreakForBonus % 10 === 0 &&
+            successCharStreakForBonus !== 0
+          ) {
+            const bonusSecondsToAdd = Math.floor(
+              successCharStreakForBonus / 10
+            );
+            setTimer((prevTimer) => prevTimer + bonusSecondsToAdd);
+            setBonusSeconds((prevBonus) => prevBonus + bonusSecondsToAdd);
+          }
+        } else if (currentWord?.romaji.startsWith(newTypedWord)) {
+          // ユーザーが正しい文字を入力した場合
+          setTypedWord(newTypedWord);
+          new Audio("/type.mov").play();
           setSuccessCharStreak((prevStreak) => prevStreak + 1);
           setSuccessCharStreakForBonus((prevStreak) => prevStreak + 1);
-
-          // キーボード入力した文字が現在のワードローマ字と一致した場合
-          if (newTypedWord === currentWord?.romaji) {
-            // ユーザーが現在のワードを全て入力した場合
-            successAudio.play(); // 全て一致したときの音声を再生
-            setScore((prevScore) => prevScore + 1); // スコアを更新（1ワード成功につき1点）
-            setTypedWord(""); // 入力された文字をリセット
-            selectNewWord(); // 新しいワードを選択
-
-            // 連続成功回数を更新
-            setSuccessStreak((prevStreak) => prevStreak + 1);
-
-            if (
-              successCharStreakForBonus % 10 === 0 &&
-              successCharStreakForBonus !== 0
-            ) {
-              const bonusSecondsToAdd = Math.floor(
-                successCharStreakForBonus / 10
-              );
-              setTimer((prevTimer) => prevTimer + bonusSecondsToAdd); // ボーナス秒数を加算
-              setBonusSeconds((prevBonus) => prevBonus + bonusSecondsToAdd); // 累計のボーナス秒数を更新
-            }
-          } else {
-            // ユーザーが間違った文字を入力した場合、連続成功回数をリセット
-            setSuccessStreak(0);
-          }
-        } else if (currentWord?.romaji.startsWith(event.key as string)) {
-          // ユーザーが間違った文字を入力したが、その文字が次の正しい文字である場合
-          setTypedWord(event.key as string);
-          typeAudio.play();
-
-          // 連続成功文字数をリセット
-          setSuccessCharStreak(0);
-          setSuccessCharStreakForBonus(0);
+          setSuccessStreak(0);
         } else {
-          new Audio("/miss.mov").play(); // ミスタイプ音声
-          setTimer((prevTimer) => prevTimer - 1); // タイマーを1秒減らす
-
-          // 連続成功文字数をリセット
+          // ユーザーが間違った文字を入力した場合
+          new Audio("/miss.mov").play();
+          setTimer((prevTimer) => prevTimer - 1);
           setSuccessCharStreak(0);
           setSuccessCharStreakForBonus(0);
         }
@@ -287,9 +254,6 @@ export default function Home() {
     currentWord,
     typedWord,
     selectNewWord,
-    typeAudio,
-    successAudio,
-    missAudio,
     successStreak,
     successCharStreak,
     successCharStreakForBonus,
@@ -312,19 +276,12 @@ export default function Home() {
         setMissCount(0); // ミスタイピング回数を0にリセット
 
         // すべての音声を停止
-        [
-          startAudio,
-          gameAudio,
-          typeAudio,
-          successAudio,
-          missAudio,
-          bonusAudio,
-          failureAudio,
-          resultAudio,
-        ].forEach((audio) => {
-          audio.pause();
-          audio.currentTime = 0;
-        });
+        [startAudio, gameAudio, bonusAudio, failureAudio, resultAudio].forEach(
+          (audio) => {
+            audio.pause();
+            audio.currentTime = 0;
+          }
+        );
       }
     };
 
@@ -333,16 +290,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
-  }, [
-    startAudio,
-    gameAudio,
-    typeAudio,
-    successAudio,
-    missAudio,
-    bonusAudio,
-    failureAudio,
-    resultAudio,
-  ]);
+  }, [startAudio, gameAudio, bonusAudio, failureAudio, resultAudio]);
 
   const HomeScreen = () => (
     <div className="flex justify-center">
@@ -457,9 +405,9 @@ export default function Home() {
           <p className="text-2xl font-semibold">{currentWord?.kanji}</p>
           <p>
             {currentWord?.romaji.split("").map((char, index) => {
-              // Check if the typed character is incorrect and play the missAudio
+              // Check if the typed character is incorrect and play the miss audio
               if (typedWord.length > index && typedWord[index] !== char) {
-                missAudio.play();
+                new Audio("/miss.mov").play();
               }
               return (
                 <span
