@@ -258,15 +258,16 @@ export default function Home() {
             // ユーザーが間違った文字を入力した場合、連続成功回数をリセット
             setSuccessStreak(0);
           }
-        } else if (currentWord?.romaji.startsWith(event.key)) {
+        } else if (currentWord?.romaji.startsWith(event.key as string)) {
           // ユーザーが間違った文字を入力したが、その文字が次の正しい文字である場合
-          setTypedWord(event.key);
-          typeAudio.play(); // キーボード入力時の音声を再生
+          setTypedWord(event.key as string);
+          typeAudio.play();
 
           // 連続成功文字数をリセット
           setSuccessCharStreak(0);
           setSuccessCharStreakForBonus(0);
         } else {
+          new Audio("/miss.mov").play(); // ミスタイプ音声
           setTimer((prevTimer) => prevTimer - 1); // タイマーを1秒減らす
 
           // 連続成功文字数をリセット
@@ -455,19 +456,25 @@ export default function Home() {
           <p>{currentWord?.furigana}</p>
           <p className="text-2xl font-semibold">{currentWord?.kanji}</p>
           <p>
-            {currentWord?.romaji.split("").map((char, index) => (
-              <span
-                key={index}
-                style={{
-                  color:
-                    typedWord.length > index && typedWord[index] === char
-                      ? "red"
-                      : "black",
-                }}
-              >
-                {char}
-              </span>
-            ))}
+            {currentWord?.romaji.split("").map((char, index) => {
+              // Check if the typed character is incorrect and play the missAudio
+              if (typedWord.length > index && typedWord[index] !== char) {
+                missAudio.play();
+              }
+              return (
+                <span
+                  key={index}
+                  style={{
+                    color:
+                      typedWord.length > index && typedWord[index] === char
+                        ? "red"
+                        : "blacak",
+                  }}
+                >
+                  {char}
+                </span>
+              );
+            })}
           </p>
         </div>
       )}
