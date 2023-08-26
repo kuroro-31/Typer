@@ -1,6 +1,6 @@
 import { Word } from "@/types/word";
 
-const hardWords: Word[] = [
+const level50: Word[] = [
   { kanji: "本日", furigana: "ほんじつ", romaji: "honjitsu" },
   { kanji: "家族", furigana: "かぞく", romaji: "kazoku" },
   { kanji: "学校", furigana: "がっこう", romaji: "gakkou" },
@@ -37,4 +37,4 @@ const hardWords: Word[] = [
   { kanji: "獅子", furigana: "しし", romaji: "shishi" },
 ];
 
-export default hardWords;
+export default level50;

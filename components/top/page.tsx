@@ -10,31 +10,68 @@ import {
 
 import { Word } from "@/types/word";
 
-import easyWords from "./words/easy";
-import hardWords from "./words/hard";
-import normalWords from "./words/normal";
-import oniWords from "./words/oni";
+// ワードのリストをlevel_1.tsからlevel_50.tsまでインポート
+const levels = Array.from(
+  { length: 50 },
+  (_, i) => import(`./words/level_${i + 1}`)
+);
 
 export default function Home() {
   const [screen, setScreen] = useState("home");
   const [gameStarted, setGameStarted] = useState(false);
-  const [difficulty, setDifficulty] = useState<
-    "easy" | "normal" | "hard" | "oni" | null
-  >(null);
   const [gameInProgress, setGameInProgress] = useState<boolean | null>(null);
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(120);
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [typedWord, setTypedWord] = useState(""); // ユーザーがタイプしたワードを追跡
   const wordTimer = useRef<NodeJS.Timeout | null>(null);
   const wordStartTime = useRef<Date | null>(null); // ワード開始時間を追跡
   const [missCount, setMissCount] = useState(0); // ミス回数を追跡
+  const [level, setLevel] = useState(1);
+  const [wordsForCurrentLevel, setWordsForCurrentLevel] = useState<string[]>(
+    []
+  );
 
   const gameAudio = useMemo(() => {
     const audio = new Audio("/game.mp3");
-    audio.volume = 0.1; // 50% volume
+    audio.volume = 0.1;
     return audio;
   }, []);
+
+  // レベルに基づいてワードリストをセットする関数
+  const setWordsForLevel = useCallback(async () => {
+    const currentLevelWordsModule = await levels[level - 1];
+    const currentLevelWords: Word[] = currentLevelWordsModule.default;
+    const selectedWords: Word[] = [];
+
+    while (selectedWords.length < 5) {
+      const randomWordIndex = Math.floor(
+        Math.random() * currentLevelWords.length
+      );
+      const randomWord = currentLevelWords[randomWordIndex];
+      if (!selectedWords.includes(randomWord)) {
+        selectedWords.push(randomWord);
+        currentLevelWords.splice(randomWordIndex, 1); // 使用したワードをリストから削除
+      }
+    }
+
+    const selectedWordStrings = selectedWords.map((word) => word.romaji);
+    setWordsForCurrentLevel(selectedWordStrings);
+  }, [level]);
+
+  // 新しいワードを選択する関数
+  const selectNewWord = useCallback(() => {
+    if (wordsForCurrentLevel.length === 0) {
+      setLevel((prevLevel) => Math.min(prevLevel + 1, 50));
+      setWordsForLevel();
+    }
+
+    const newWord = wordsForCurrentLevel.pop();
+    if (newWord) {
+      setCurrentWord({ kanji: newWord, furigana: "", romaji: newWord }); // Placeholder: Assigning newWord to kanji and romaji fields, this needs to be adjusted based on correct structure of Word
+    }
+    wordStartTime.current = new Date();
+  }, [wordsForCurrentLevel, setWordsForLevel]);
 
   // スタート画面での音楽の処理
   useEffect(() => {
@@ -57,25 +94,18 @@ export default function Home() {
         setGameInProgress(true);
         new Audio("/start.mp3").play(); // スペースキーをクリックした後にstart.mp3を流す
 
-        // Select a new word based on the difficulty
-        let wordList: string | any[];
-        switch (difficulty) {
-          case "easy":
-            wordList = easyWords;
-            break;
-          case "normal":
-            wordList = normalWords;
-            break;
-          case "hard":
-            wordList = hardWords;
-            break;
-          case "oni":
-            wordList = oniWords;
-            break;
-          default:
-            wordList = [];
-        }
-        const newWord = wordList[Math.floor(Math.random() * wordList.length)];
+        // Select a new word based on the current level
+        setWordsForLevel();
+
+        const newWordRomaji =
+          wordsForCurrentLevel[
+            Math.floor(Math.random() * wordsForCurrentLevel.length)
+          ];
+        const newWord: Word = {
+          kanji: newWordRomaji, // この部分は適切な値に置き換える必要があります
+          furigana: "", // この部分は適切な値に置き換える必要があります
+          romaji: newWordRomaji,
+        };
         setCurrentWord(newWord);
         wordStartTime.current = new Date(); // ワード開始時間を記録
       }
@@ -86,31 +116,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [difficulty, screen]);
-
-  // 新しいワードを選択する関数
-  const selectNewWord = useCallback(() => {
-    let wordList: string | any[];
-    switch (difficulty) {
-      case "easy":
-        wordList = easyWords;
-        break;
-      case "normal":
-        wordList = normalWords;
-        break;
-      case "hard":
-        wordList = hardWords;
-        break;
-      case "oni":
-        wordList = oniWords;
-        break;
-      default:
-        wordList = [];
-    }
-    const newWord = wordList[Math.floor(Math.random() * wordList.length)];
-    setCurrentWord(newWord);
-    wordStartTime.current = new Date(); // ワード開始時間を記録
-  }, [difficulty]);
+  }, [screen, setWordsForLevel, wordsForCurrentLevel]);
 
   // 5秒間で1ワードの全ての文字をキーボード入力できなかったら、public/failure.mp3を流して次のワードを出す
   useEffect(() => {
@@ -139,7 +145,7 @@ export default function Home() {
         }
       };
     }
-  }, [gameInProgress, difficulty, typedWord, currentWord, selectNewWord]);
+  }, [gameInProgress, typedWord, currentWord, selectNewWord]);
 
   // ユーザーがキーボードで文字を入力したときの処理
   useEffect(() => {
@@ -202,6 +208,10 @@ export default function Home() {
     };
   }, [gameAudio]);
 
+  useEffect(() => {
+    setWordsForLevel();
+  }, [level, setWordsForLevel]);
+
   const HomeScreen = () => (
     <div className="flex justify-center">
       <div className="">
@@ -210,7 +220,7 @@ export default function Home() {
       <div className="inline-flex flex-col">
         <button
           onClick={() => {
-            setScreen("start");
+            setScreen("level");
           }}
           className="btn"
         >
@@ -218,52 +228,6 @@ export default function Home() {
         </button>
         <button className="btn-border mt-2">遊び方</button>
         <button className="btn-border mt-2">設定</button>
-      </div>
-    </div>
-  );
-
-  const StartScreen = () => (
-    <div className="flex justify-center">
-      <div className="">
-        <h2></h2>
-      </div>
-      <div className="inline-flex flex-col">
-        <button
-          onClick={() => {
-            setScreen("level");
-            setDifficulty("easy");
-          }}
-          className="btn-easy mt-2"
-        >
-          易しい
-        </button>
-        <button
-          onClick={() => {
-            setScreen("level");
-            setDifficulty("normal");
-          }}
-          className="btn-normal mt-2"
-        >
-          普通
-        </button>
-        <button
-          onClick={() => {
-            setScreen("level");
-            setDifficulty("hard");
-          }}
-          className="btn-hard mt-2"
-        >
-          難しい
-        </button>
-        <button
-          onClick={() => {
-            setScreen("level");
-            setDifficulty("oni");
-          }}
-          className="btn-oni mt-2"
-        >
-          鬼
-        </button>
       </div>
     </div>
   );
@@ -384,7 +348,6 @@ export default function Home() {
       <div className="w-[500px] h-[420px] bg-white rounded-[17px] flex flex-col">
         <div className="h-full flex justify-center items-center">
           {screen === "home" && <HomeScreen />}
-          {screen === "start" && <StartScreen />}
           {screen === "level" && <LevelScreen />}
           {screen === "result" && <ResultScreen />}
         </div>
@@ -396,7 +359,7 @@ export default function Home() {
                 setScreen("home");
                 setGameStarted(false);
                 setGameInProgress(null);
-                setTimer(60);
+                setTimer(120);
                 setScore(0);
                 setCurrentWord(null);
                 setTypedWord("");
