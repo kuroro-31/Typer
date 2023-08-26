@@ -36,12 +36,6 @@ export default function Home() {
   const [missCount, setMissCount] = useState(0); // ミス回数を追跡
   const [bonusSeconds, setBonusSeconds] = useState(0); // ボーナス秒数を追跡
 
-  const startAudio = useMemo(() => {
-    const audio = new Audio("/start.mp3");
-    audio.volume = 1; // 50% volume
-    return audio;
-  }, []);
-
   const gameAudio = useMemo(() => {
     const audio = new Audio("/game.mp3");
     audio.volume = 0.1; // 50% volume
@@ -56,12 +50,6 @@ export default function Home() {
 
   const failureAudio = useMemo(() => {
     const audio = new Audio("/failure.mp3");
-    audio.volume = 1; // 50% volume
-    return audio;
-  }, []);
-
-  const resultAudio = useMemo(() => {
-    const audio = new Audio("/result.mp3");
     audio.volume = 1; // 50% volume
     return audio;
   }, []);
@@ -92,16 +80,15 @@ export default function Home() {
   // スタート画面での音楽の処理
   useEffect(() => {
     if (screen === "start") {
-      startAudio.currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
+      new Audio("/start.mp3").currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
       gameAudio.pause();
     } else if (screen === "level" && gameStarted) {
       gameAudio.currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
       gameAudio.play();
     } else if (screen === "home" || screen === "result") {
-      startAudio.pause();
       gameAudio.pause();
     }
-  }, [gameAudio, screen, startAudio, gameStarted]);
+  }, [gameAudio, screen, gameStarted]);
 
   // スペースキーを押した時の処理
   useEffect(() => {
@@ -109,7 +96,7 @@ export default function Home() {
       if (event.code === "Space" && screen === "level") {
         setGameStarted(true);
         setGameInProgress(true);
-        startAudio.play(); // スペースキーをクリックした後にstart.mp3を流す
+        new Audio("/start.mp3").play(); // スペースキーをクリックした後にstart.mp3を流す
 
         // Select a new word based on the difficulty
         let wordList: string | any[];
@@ -140,7 +127,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [difficulty, screen, startAudio]);
+  }, [difficulty, screen]);
 
   // 新しいワードを選択する関数
   const selectNewWord = useCallback(() => {
@@ -276,12 +263,10 @@ export default function Home() {
         setMissCount(0); // ミスタイピング回数を0にリセット
 
         // すべての音声を停止
-        [startAudio, gameAudio, bonusAudio, failureAudio, resultAudio].forEach(
-          (audio) => {
-            audio.pause();
-            audio.currentTime = 0;
-          }
-        );
+        [gameAudio, bonusAudio, failureAudio].forEach((audio) => {
+          audio.pause();
+          audio.currentTime = 0;
+        });
       }
     };
 
@@ -290,7 +275,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
-  }, [startAudio, gameAudio, bonusAudio, failureAudio, resultAudio]);
+  }, [gameAudio, bonusAudio, failureAudio]);
 
   const HomeScreen = () => (
     <div className="flex justify-center">
@@ -499,14 +484,14 @@ export default function Home() {
         if (score < 0) {
           minusAudio.play(); // スコアがマイナスの場合、minus.mp3を再生する
         } else {
-          resultAudio.play(); // スコアが0以上の場合、result.mp3を再生する
+          new Audio("/result.mp3").play(); // スコアが0以上の場合、result.mp3を再生する
         }
         if (wordTimer.current) {
           clearInterval(wordTimer.current);
         }
       }
     }
-  }, [gameStarted, timer, resultAudio, minusAudio, score]);
+  }, [gameStarted, timer, minusAudio, score]);
 
   /* ゲームの中身 */
   return (
