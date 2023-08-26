@@ -26,26 +26,15 @@ export default function Home() {
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [typedWord, setTypedWord] = useState(""); // ユーザーがタイプしたワードを追跡
-  const [successStreak, setSuccessStreak] = useState(0); // 連続成功回数を追跡
-  const [successCharStreak, setSuccessCharStreak] = useState(0); // 連続成功文字数を追跡
   const wordTimer = useRef<NodeJS.Timeout | null>(null);
   const wordStartTime = useRef<Date | null>(null); // ワード開始時間を追跡
-  // ボーナス用の連続成功文字数を追跡するためのステート変数
-  const [successCharStreakForBonus, setSuccessCharStreakForBonus] =
-    useState<number>(0);
   const [missCount, setMissCount] = useState(0); // ミス回数を追跡
-  const [bonusSeconds, setBonusSeconds] = useState(0); // ボーナス秒数を追跡
 
   const gameAudio = useMemo(() => {
     const audio = new Audio("/game.mp3");
     audio.volume = 0.1; // 50% volume
     return audio;
   }, []);
-
-  // ボーナス用の連続成功文字数をリセット
-  const resetBonusStreak = () => {
-    setSuccessCharStreakForBonus(0);
-  };
 
   // スタート画面での音楽の処理
   useEffect(() => {
@@ -165,32 +154,14 @@ export default function Home() {
           // ... (その他の成功時の処理)
           setScore((prevScore) => prevScore + 1);
           selectNewWord();
-          setSuccessStreak((prevStreak) => prevStreak + 1);
-
-          if (
-            successCharStreakForBonus % 10 === 0 &&
-            successCharStreakForBonus !== 0
-          ) {
-            const bonusSecondsToAdd = Math.floor(
-              successCharStreakForBonus / 10
-            );
-            setTimer((prevTimer) => prevTimer + bonusSecondsToAdd);
-            setBonusSeconds((prevBonus) => prevBonus + bonusSecondsToAdd);
-            new Audio("/bonus.mov").play();
-          }
         } else if (currentWord?.romaji.startsWith(newTypedWord)) {
           // ユーザーが正しい文字を入力した場合
           setTypedWord(newTypedWord);
           new Audio("/type.mov").play();
-          setSuccessCharStreak((prevStreak) => prevStreak + 1);
-          setSuccessCharStreakForBonus((prevStreak) => prevStreak + 1);
-          setSuccessStreak(0);
         } else {
           // ユーザーが間違った文字を入力した場合
           new Audio("/miss.mov").play();
           setTimer((prevTimer) => prevTimer - 1);
-          setSuccessCharStreak(0);
-          setSuccessCharStreakForBonus(0);
           setMissCount((prevCount) => prevCount + 1); // ミスタイピング数を増やす
         }
       }
@@ -201,15 +172,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [
-    gameInProgress,
-    currentWord,
-    typedWord,
-    selectNewWord,
-    successStreak,
-    successCharStreak,
-    successCharStreakForBonus,
-  ]);
+  }, [gameInProgress, currentWord, typedWord, selectNewWord]);
 
   // ゲーム中のescを押した時の処理
   useEffect(() => {
@@ -222,9 +185,6 @@ export default function Home() {
         setScore(0); // スコアをリセット
         setCurrentWord(null); // 現在のワードをリセット
         setTypedWord(""); // 入力されたワードをリセット
-        setSuccessStreak(0); // 連続成功回数をリセット
-        setSuccessCharStreak(0); // 連続成功文字数をリセット
-        setSuccessCharStreakForBonus(0); // ボーナス用の連続成功文字数をリセット
         setMissCount(0); // ミスタイピング回数を0にリセット
 
         // すべての音声を停止
@@ -355,7 +315,6 @@ export default function Home() {
         <div className="">
           <p className="mt-auto">Score: {score}</p>
           <p className="mt-auto">残り: {timer}秒</p>
-          <p className="mt-auto">連続成功文字数: {successCharStreak}</p>
           <p>ミスタイピング数: {missCount}</p>
         </div>
       )}
@@ -441,8 +400,6 @@ export default function Home() {
                 setScore(0);
                 setCurrentWord(null);
                 setTypedWord("");
-                setSuccessStreak(0);
-                resetBonusStreak();
               }}
             >
               戻る
