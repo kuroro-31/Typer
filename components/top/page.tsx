@@ -42,24 +42,6 @@ export default function Home() {
     return audio;
   }, []);
 
-  const minusAudio = useMemo(() => {
-    const audio = new Audio("/minus.mp3");
-    audio.volume = 1; // 50% volume
-    return audio;
-  }, []);
-
-  const stopAudio = useMemo(() => {
-    const audio = new Audio("/stop.mp3");
-    audio.volume = 0.5; // 50% volume
-    return audio;
-  }, []);
-
-  const countdownAudio = useMemo(() => {
-    const audio = new Audio("/countdown.mov");
-    audio.volume = 0.5; // 50% volume
-    return audio;
-  }, []);
-
   // ボーナス用の連続成功文字数をリセット
   const resetBonusStreak = () => {
     setSuccessCharStreakForBonus(0);
@@ -443,10 +425,10 @@ export default function Home() {
       const timerId = setInterval(() => {
         setTimer((prevTimer) => {
           if (prevTimer <= 0) {
-            stopAudio.play(); // 残り時間が0になったら、stop.mp3を再生する
+            new Audio("/stop.mp3").play(); // 残り時間が0になったら、stop.mp3を再生する
             return 0; // 残り時間が0を通り過ぎてマイナスにならないようにする
           } else if (prevTimer === 4) {
-            countdownAudio.play();
+            new Audio("/countdown.mov").play();
           }
           return prevTimer - 1;
         });
@@ -454,7 +436,7 @@ export default function Home() {
 
       return () => clearInterval(timerId);
     }
-  }, [gameStarted, gameInProgress, stopAudio, countdownAudio]);
+  }, [gameStarted, gameInProgress]);
 
   // ゲーム終了時の処理
   useEffect(() => {
@@ -464,7 +446,7 @@ export default function Home() {
         setGameInProgress(false);
         setScreen("result"); // ゲーム終了時に結果画面に遷移
         if (score < 0) {
-          minusAudio.play(); // スコアがマイナスの場合、minus.mp3を再生する
+          new Audio("/minus.mp3").play(); // スコアがマイナスの場合、minus.mp3を再生する
         } else {
           new Audio("/result.mp3").play(); // スコアが0以上の場合、result.mp3を再生する
         }
@@ -473,7 +455,7 @@ export default function Home() {
         }
       }
     }
-  }, [gameStarted, timer, minusAudio, score]);
+  }, [gameStarted, timer, score]);
 
   /* ゲームの中身 */
   return (
