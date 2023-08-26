@@ -191,6 +191,7 @@ export default function Home() {
           setTimer((prevTimer) => prevTimer - 1);
           setSuccessCharStreak(0);
           setSuccessCharStreakForBonus(0);
+          setMissCount((prevCount) => prevCount + 1); // ミスタイピング数を増やす
         }
       }
     };
@@ -307,49 +308,11 @@ export default function Home() {
     </div>
   );
 
-  // プログレスバーとポップアップを表示するコンポーネント
-  const ProgressBarAndPopup = ({
-    successCharStreakForBonus,
-  }: {
-    successCharStreakForBonus: number;
-  }) => {
-    const [showPopup, setShowPopup] = useState(false);
-    const [currentBonusSeconds, setCurrentBonusSeconds] = useState(0); // 現在のボーナス秒数を保持するステート変数
-
-    useEffect(() => {
-      if (
-        successCharStreakForBonus % 10 === 0 &&
-        successCharStreakForBonus !== 0
-      ) {
-        setShowPopup(true);
-        const bonusSecondsToAdd = Math.floor(successCharStreakForBonus / 10);
-        setCurrentBonusSeconds(bonusSecondsToAdd); // 現在のボーナス秒数を更新
-        setTimeout(() => setShowPopup(false), 2000); // 2秒後にポップアップを非表示にする
-      }
-    }, [successCharStreakForBonus]);
-
-    return (
-      <div>
-        <div
-          style={{
-            height: "20px",
-            width: `${(successCharStreakForBonus % 10) * 10}%`,
-            backgroundColor: "blue",
-          }}
-        />
-        {showPopup && <div>{currentBonusSeconds}秒加算されました！</div>}
-      </div>
-    );
-  };
-
   // ゲーム中の画面
   const LevelScreen = () => (
     <div className="h-full flex flex-col items-center justify-center p-4">
       {gameInProgress && (
         <div className="mx-auto my-8 text-center">
-          <ProgressBarAndPopup
-            successCharStreakForBonus={successCharStreakForBonus}
-          />
           <p>{currentWord?.furigana}</p>
           <p className="text-2xl font-semibold">{currentWord?.kanji}</p>
           <p>
@@ -394,7 +357,6 @@ export default function Home() {
           <p className="mt-auto">残り: {timer}秒</p>
           <p className="mt-auto">連続成功文字数: {successCharStreak}</p>
           <p>ミスタイピング数: {missCount}</p>
-          <p>ボーナス秒数: {bonusSeconds}</p> {/* 累計のボーナス秒数を表示 */}
         </div>
       )}
     </div>
