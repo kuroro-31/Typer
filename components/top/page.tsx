@@ -42,18 +42,6 @@ export default function Home() {
     return audio;
   }, []);
 
-  const bonusAudio = useMemo(() => {
-    const audio = new Audio("/bonus.mov");
-    audio.volume = 0.5; // 50% volume
-    return audio;
-  }, []);
-
-  const failureAudio = useMemo(() => {
-    const audio = new Audio("/failure.mp3");
-    audio.volume = 1; // 50% volume
-    return audio;
-  }, []);
-
   const minusAudio = useMemo(() => {
     const audio = new Audio("/minus.mp3");
     audio.volume = 1; // 50% volume
@@ -167,7 +155,7 @@ export default function Home() {
           now.getTime() - wordStartTime.current.getTime() >= 5000
         ) {
           // 5秒以上経過していたら
-          failureAudio.play();
+          new Audio("/failure.mp3").play();
           setScore((prevScore) => prevScore - 1); // スコアを1点減算
           setTypedWord("");
           selectNewWord();
@@ -180,14 +168,7 @@ export default function Home() {
         }
       };
     }
-  }, [
-    gameInProgress,
-    difficulty,
-    failureAudio,
-    typedWord,
-    currentWord,
-    selectNewWord,
-  ]);
+  }, [gameInProgress, difficulty, typedWord, currentWord, selectNewWord]);
 
   // ユーザーがキーボードで文字を入力したときの処理
   useEffect(() => {
@@ -213,6 +194,7 @@ export default function Home() {
             );
             setTimer((prevTimer) => prevTimer + bonusSecondsToAdd);
             setBonusSeconds((prevBonus) => prevBonus + bonusSecondsToAdd);
+            new Audio("/bonus.mov").play();
           }
         } else if (currentWord?.romaji.startsWith(newTypedWord)) {
           // ユーザーが正しい文字を入力した場合
@@ -263,7 +245,7 @@ export default function Home() {
         setMissCount(0); // ミスタイピング回数を0にリセット
 
         // すべての音声を停止
-        [gameAudio, bonusAudio, failureAudio].forEach((audio) => {
+        [gameAudio].forEach((audio) => {
           audio.pause();
           audio.currentTime = 0;
         });
@@ -275,7 +257,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
-  }, [gameAudio, bonusAudio, failureAudio]);
+  }, [gameAudio]);
 
   const HomeScreen = () => (
     <div className="flex justify-center">
