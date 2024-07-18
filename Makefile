@@ -7,7 +7,7 @@ reset:
 	npm cache clean --force
 	npm i
 dev:
-	npm run dev
+	rm -rf .next && npm run dev
 build:
 	npm run build
 watch:

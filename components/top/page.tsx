@@ -3,7 +3,6 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -18,6 +17,7 @@ const levels = Array.from(
 
 export default function Home() {
   const [screen, setScreen] = useState("home");
+  const [gameAudio, setGameAudio] = useState<Audio | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameInProgress, setGameInProgress] = useState<boolean | null>(null);
   const [timer, setTimer] = useState(120);
@@ -28,14 +28,12 @@ export default function Home() {
   const wordStartTime = useRef<Date | null>(null); // ワード開始時間を追跡
   const [missCount, setMissCount] = useState(0); // ミス回数を追跡
   const [level, setLevel] = useState(1);
-  const [wordsForCurrentLevel, setWordsForCurrentLevel] = useState<string[]>(
-    []
-  );
+  const [wordsForCurrentLevel, setWordsForCurrentLevel] = useState<Word[]>([]);
 
-  const gameAudio = useMemo(() => {
+  useEffect(() => {
     const audio = new Audio("/game.mp3");
-    audio.volume = 0.1;
-    return audio;
+    audio.volume = 0.5;
+    setGameAudio(audio);
   }, []);
 
   // レベルに基づいてワードリストをセットする関数
@@ -55,8 +53,7 @@ export default function Home() {
       }
     }
 
-    const selectedWordStrings = selectedWords.map((word) => word.romaji);
-    setWordsForCurrentLevel(selectedWordStrings);
+    setWordsForCurrentLevel(selectedWords);
   }, [level]);
 
   // 新しいワードを選択する関数
@@ -68,7 +65,7 @@ export default function Home() {
 
     const newWord = wordsForCurrentLevel.pop();
     if (newWord) {
-      setCurrentWord({ kanji: newWord, furigana: "", romaji: newWord }); // Placeholder: Assigning newWord to kanji and romaji fields, this needs to be adjusted based on correct structure of Word
+      setCurrentWord(newWord);
     }
     wordStartTime.current = new Date();
   }, [wordsForCurrentLevel, setWordsForLevel]);
@@ -82,7 +79,7 @@ export default function Home() {
       gameAudio.currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
       gameAudio.play();
     } else if (screen === "home" || screen === "result") {
-      gameAudio.pause();
+      if (gameAudio) gameAudio.pause();
     }
   }, [gameAudio, screen, gameStarted]);
 
@@ -97,15 +94,10 @@ export default function Home() {
         // Select a new word based on the current level
         setWordsForLevel();
 
-        const newWordRomaji =
+        const newWord =
           wordsForCurrentLevel[
             Math.floor(Math.random() * wordsForCurrentLevel.length)
           ];
-        const newWord: Word = {
-          kanji: newWordRomaji, // この部分は適切な値に置き換える必要があります
-          furigana: "", // この部分は適切な値に置き換える必要があります
-          romaji: newWordRomaji,
-        };
         setCurrentWord(newWord);
         wordStartTime.current = new Date(); // ワード開始時間を記録
       }
@@ -212,6 +204,7 @@ export default function Home() {
     setWordsForLevel();
   }, [level, setWordsForLevel]);
 
+  // ゲームの最初の画面
   const HomeScreen = () => (
     <div className="flex justify-center">
       <div className="">
@@ -232,58 +225,65 @@ export default function Home() {
     </div>
   );
 
-  // ゲーム中の画面
-  const LevelScreen = () => (
-    <div className="h-full flex flex-col items-center justify-center p-4">
-      {gameInProgress && (
-        <div className="mx-auto my-8 text-center">
-          <p>{currentWord?.furigana}</p>
-          <p className="text-2xl font-semibold">{currentWord?.kanji}</p>
-          <p>
-            {currentWord?.romaji.split("").map((char, index) => {
-              // Check if the typed character is incorrect and play the miss audio
-              if (typedWord.length > index && typedWord[index] !== char) {
-                new Audio("/miss.mov").play();
-              }
-              return (
-                <span
-                  key={index}
-                  style={{
-                    color:
-                      typedWord.length > index && typedWord[index] === char
-                        ? "red"
-                        : "blacak",
-                  }}
-                >
-                  {char}
-                </span>
-              );
-            })}
-          </p>
-        </div>
-      )}
-      {!gameInProgress && screen === "level" && (
-        <div className="">
-          <p className="flex justify-center text-xl">
-            タイピングではキーボードを使います
-          </p>
-          <p className="flex justify-center text-lg mt-4">
-            スペースキーを押したらスタート！
-          </p>
-          <p className="mt-4">
-            ゲーム中に「ESCキー」を押すと、スタート画面に戻ります
-          </p>
-        </div>
-      )}
-      {gameInProgress && (
-        <div className="">
-          <p className="mt-auto">Score: {score}</p>
-          <p className="mt-auto">残り: {timer}秒</p>
-          <p>ミスタイピング数: {missCount}</p>
-        </div>
-      )}
-    </div>
-  );
+  const LevelScreen = () => {
+    useEffect(() => {
+      console.log("currentWord:", currentWord);
+    }, []);
+
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-4">
+        {gameInProgress && (
+          <div className="mx-auto my-8 text-center">
+            <p className="text-lg">{currentWord?.furigana}</p>
+            <p className="text-3xl font-semibold">
+              {currentWord?.kanji || "デフォルトの漢字"}
+            </p>
+            <p className="text-xl">
+              {currentWord?.romaji.split("").map((char, index) => {
+                // Check if the typed character is incorrect and play the miss audio
+                if (typedWord.length > index && typedWord[index] !== char) {
+                  new Audio("/miss.mov").play();
+                }
+                return (
+                  <span
+                    key={index}
+                    style={{
+                      color:
+                        typedWord.length > index && typedWord[index] === char
+                          ? "red"
+                          : "black", // 修正: "blacak" -> "black"
+                    }}
+                  >
+                    {char}
+                  </span>
+                );
+              })}
+            </p>
+          </div>
+        )}
+        {!gameInProgress && screen === "level" && (
+          <div className="">
+            <p className="flex justify-center text-xl">
+              タイピングではキーボードを使います
+            </p>
+            <p className="flex justify-center text-lg mt-4">
+              スペースキーを押したらスタート！
+            </p>
+            <p className="mt-4">
+              ゲーム中に「ESCキー」を押すと、スタート画面に戻ります
+            </p>
+          </div>
+        )}
+        {gameInProgress && (
+          <div className="">
+            <p className="mt-auto">Score: {score}</p>
+            <p className="mt-auto">残り: {timer}秒</p>
+            <p>ミスタイピング数: {missCount}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // ゲーム結果画面
   const ResultScreen = () => (
