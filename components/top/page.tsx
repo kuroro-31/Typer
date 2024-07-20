@@ -248,7 +248,10 @@ export default function Home() {
             <p className="text-lg">{currentWord?.furigana}</p>
             <p className="text-3xl font-semibold">{currentWord?.kanji}</p>
             <p className="text-xl">
-              {currentWord?.romaji[0]
+              {(
+                currentWord?.romaji.find((r) => r.startsWith(typedWord)) ||
+                currentWord?.romaji[0]
+              )
                 ?.split("")
                 .map((char: string, index: number) => {
                   // Check if the typed character is incorrect and play the miss audio
@@ -262,7 +265,7 @@ export default function Home() {
                         color:
                           typedWord.length > index && typedWord[index] === char
                             ? "red"
-                            : "black", // 修正: "blacak" -> "black"
+                            : "black",
                       }}
                     >
                       {char}
