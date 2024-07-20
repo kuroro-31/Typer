@@ -34,6 +34,7 @@ export default function Home() {
   const [level, setLevel] = useState(1);
   const [levels, setLevels] = useState<any[]>([]);
   const [wordsForCurrentLevel, setWordsForCurrentLevel] = useState<Word[]>([]);
+  const [usedWords, setUsedWords] = useState<Word[]>([]); // 使用済みのワードを追跡
 
   useEffect(() => {
     const audio = new Audio("/game.mp3");
@@ -47,21 +48,9 @@ export default function Home() {
   // レベルに基づいてワードリストをセットする関数
   const setWordsForLevel = useCallback(async () => {
     if (levels.length === 0) return; // レベルがロードされていない場合は何もしない
-    const currentLevelWords: Word[] = levels[level - 1];
-    const selectedWords: Word[] = [];
-
-    while (selectedWords.length < 5 && currentLevelWords.length > 0) {
-      const randomWordIndex = Math.floor(
-        Math.random() * currentLevelWords.length
-      );
-      const randomWord = currentLevelWords[randomWordIndex];
-      if (!selectedWords.includes(randomWord)) {
-        selectedWords.push(randomWord);
-        currentLevelWords.splice(randomWordIndex, 1); // 使用したワードをリストから削除
-      }
-    }
-
-    setWordsForCurrentLevel(selectedWords);
+    const currentLevelWords: Word[] = [...levels[level - 1]]; // コピーを作成
+    setWordsForCurrentLevel(currentLevelWords);
+    setUsedWords([]); // 新しいレベルに進むときに使用済みのワードをリセット
   }, [levels, level]);
 
   // 新しいワードを選択する関数
@@ -70,12 +59,25 @@ export default function Home() {
       await setWordsForLevel();
     }
 
-    const newWord = wordsForCurrentLevel.pop();
+    const availableWords = wordsForCurrentLevel.filter(
+      (word) => !usedWords.includes(word)
+    );
+
+    if (availableWords.length === 0) {
+      // すべてのワードが使用済みの場合、リセットするか新しいレベルに進む
+      await setWordsForLevel();
+      return;
+    }
+
+    const newWord =
+      availableWords[Math.floor(Math.random() * availableWords.length)];
+
     if (newWord) {
       setCurrentWord(newWord);
+      setUsedWords((prevUsedWords) => [...prevUsedWords, newWord]);
     }
     wordStartTime.current = new Date();
-  }, [wordsForCurrentLevel, setWordsForLevel]);
+  }, [wordsForCurrentLevel, setWordsForLevel, usedWords]);
 
   // スタート画面での音楽の処理
   useEffect(() => {
@@ -101,14 +103,9 @@ export default function Home() {
         new Audio("/start.mp3").play(); // スペースキーをクリックした後にstart.mp3を流す
 
         // Select a new word based on the current level
-        setWordsForLevel();
-
-        const newWord =
-          wordsForCurrentLevel[
-            Math.floor(Math.random() * wordsForCurrentLevel.length)
-          ];
-        setCurrentWord(newWord);
-        wordStartTime.current = new Date(); // ワード開始時間を記録
+        setWordsForLevel().then(() => {
+          selectNewWord();
+        });
       }
     };
 
@@ -117,7 +114,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [screen, setWordsForLevel, wordsForCurrentLevel]);
+  }, [screen, setWordsForLevel, selectNewWord]);
 
   // 5秒間で1ワードの全ての文字をキーボード入力できなかったら、public/failure.mp3を流して次のワードを出す
   useEffect(() => {
@@ -134,11 +131,12 @@ export default function Home() {
         ) {
           // 5秒以上経過していたら
           new Audio("/failure.mp3").play();
-          setScore((prevScore) => prevScore - 1); // スコアを1点減算
+          setScore((prevScore) => Math.max(prevScore - 1, 0)); // スコアを1点減算し、0未満にならないようにする
           setTypedWord("");
           selectNewWord();
+          wordStartTime.current = new Date(); // 新しいワードの開始時間をリセット
         }
-      }, 5000 - (Date.now() - (wordStartTime.current?.getTime() || 0))); // ここを修正
+      }, 5000 - (Date.now() - (wordStartTime.current?.getTime() || 0)));
 
       return () => {
         if (wordTimer.current) {
@@ -172,6 +170,7 @@ export default function Home() {
           new Audio("/miss.mov").play();
           setTimer((prevTimer) => prevTimer - 1);
           setMissCount((prevCount) => prevCount + 1); // ミスタイピング数を増やす
+          setTypedWord(""); // タイプされたワードをリセット
         }
       }
     };
@@ -195,6 +194,7 @@ export default function Home() {
         setCurrentWord(null); // 現在のワードをリセット
         setTypedWord(""); // 入力されたワードをリセット
         setMissCount(0); // ミスタイピング回数を0にリセット
+        setUsedWords([]); // 使用済みのワードをリセット
 
         // すべての音声を停止
         if (gameAudio) {
@@ -250,7 +250,7 @@ export default function Home() {
             <p className="text-xl">
               {(
                 currentWord?.romaji.find((r) => r.startsWith(typedWord)) ||
-                currentWord?.romaji[0]
+                currentWord?.romaji.find((r) => r === currentWord.romaji[0])
               )
                 ?.split("")
                 .map((char: string, index: number) => {
@@ -377,6 +377,7 @@ export default function Home() {
                 setScore(0);
                 setCurrentWord(null);
                 setTypedWord("");
+                setUsedWords([]); // 使用済みのワードをリセット
               }}
             >
               戻る
