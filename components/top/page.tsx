@@ -7,17 +7,21 @@ import {
   useState,
 } from "react";
 
+import { GameAudio } from "@/types/audio";
 import { Word } from "@/types/word";
 
 // ワードのリストをlevel_1.tsからlevel_50.tsまでインポート
-const levels = Array.from(
-  { length: 50 },
-  (_, i) => import(`./words/level_${i + 1}`)
-);
+const loadLevels = async () => {
+  const levels = await Promise.all([
+    import(`./words/level_1`),
+    // 必要な他のレベルもここに追加
+  ]);
+  return levels.map((module) => module.default);
+};
 
 export default function Home() {
   const [screen, setScreen] = useState("home");
-  const [gameAudio, setGameAudio] = useState<Audio | null>(null);
+  const [gameAudio, setGameAudio] = useState<GameAudio>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameInProgress, setGameInProgress] = useState<boolean | null>(null);
   const [timer, setTimer] = useState(120);
@@ -28,21 +32,25 @@ export default function Home() {
   const wordStartTime = useRef<Date | null>(null); // ワード開始時間を追跡
   const [missCount, setMissCount] = useState(0); // ミス回数を追跡
   const [level, setLevel] = useState(1);
+  const [levels, setLevels] = useState<any[]>([]);
   const [wordsForCurrentLevel, setWordsForCurrentLevel] = useState<Word[]>([]);
 
   useEffect(() => {
     const audio = new Audio("/game.mp3");
     audio.volume = 0.5;
     setGameAudio(audio);
+
+    // レベルをロード
+    loadLevels().then(setLevels);
   }, []);
 
   // レベルに基づいてワードリストをセットする関数
   const setWordsForLevel = useCallback(async () => {
-    const currentLevelWordsModule = await levels[level - 1];
-    const currentLevelWords: Word[] = currentLevelWordsModule.default;
+    if (levels.length === 0) return; // レベルがロードされていない場合は何もしない
+    const currentLevelWords: Word[] = levels[level - 1];
     const selectedWords: Word[] = [];
 
-    while (selectedWords.length < 5) {
+    while (selectedWords.length < 5 && currentLevelWords.length > 0) {
       const randomWordIndex = Math.floor(
         Math.random() * currentLevelWords.length
       );
@@ -54,13 +62,12 @@ export default function Home() {
     }
 
     setWordsForCurrentLevel(selectedWords);
-  }, [level]);
+  }, [levels, level]);
 
   // 新しいワードを選択する関数
-  const selectNewWord = useCallback(() => {
+  const selectNewWord = useCallback(async () => {
     if (wordsForCurrentLevel.length === 0) {
-      setLevel((prevLevel) => Math.min(prevLevel + 1, 50));
-      setWordsForLevel();
+      await setWordsForLevel();
     }
 
     const newWord = wordsForCurrentLevel.pop();
@@ -74,10 +81,12 @@ export default function Home() {
   useEffect(() => {
     if (screen === "start") {
       new Audio("/start.mp3").currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
-      gameAudio.pause();
+      if (gameAudio) gameAudio.pause();
     } else if (screen === "level" && gameStarted) {
-      gameAudio.currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
-      gameAudio.play();
+      if (gameAudio) {
+        gameAudio.currentTime = 0; // 音楽が切り替わる場合、必ず最初から再生されるようにする
+        gameAudio.play();
+      }
     } else if (screen === "home" || screen === "result") {
       if (gameAudio) gameAudio.pause();
     }
@@ -145,14 +154,16 @@ export default function Home() {
       if (gameInProgress && event.key.length === 1) {
         const newTypedWord = typedWord + event.key;
 
-        if (newTypedWord === currentWord?.romaji) {
+        if (currentWord?.romaji.some((r) => r === newTypedWord)) {
           // ユーザーが現在のワードを全て入力した場合
           setTypedWord("");
           new Audio("/success.mov").play();
           // ... (その他の成功時の処理)
           setScore((prevScore) => prevScore + 1);
           selectNewWord();
-        } else if (currentWord?.romaji.startsWith(newTypedWord)) {
+        } else if (
+          currentWord?.romaji.some((r) => r.startsWith(newTypedWord))
+        ) {
           // ユーザーが正しい文字を入力した場合
           setTypedWord(newTypedWord);
           new Audio("/type.mov").play();
@@ -186,10 +197,10 @@ export default function Home() {
         setMissCount(0); // ミスタイピング回数を0にリセット
 
         // すべての音声を停止
-        [gameAudio].forEach((audio) => {
-          audio.pause();
-          audio.currentTime = 0;
-        });
+        if (gameAudio) {
+          gameAudio.pause();
+          gameAudio.currentTime = 0;
+        }
       }
     };
 
@@ -228,36 +239,36 @@ export default function Home() {
   const LevelScreen = () => {
     useEffect(() => {
       console.log("currentWord:", currentWord);
-    }, []);
+    }, [currentWord]);
 
     return (
       <div className="h-full flex flex-col items-center justify-center p-4">
         {gameInProgress && (
           <div className="mx-auto my-8 text-center">
             <p className="text-lg">{currentWord?.furigana}</p>
-            <p className="text-3xl font-semibold">
-              {currentWord?.kanji || "デフォルトの漢字"}
-            </p>
+            <p className="text-3xl font-semibold">{currentWord?.kanji}</p>
             <p className="text-xl">
-              {currentWord?.romaji.split("").map((char, index) => {
-                // Check if the typed character is incorrect and play the miss audio
-                if (typedWord.length > index && typedWord[index] !== char) {
-                  new Audio("/miss.mov").play();
-                }
-                return (
-                  <span
-                    key={index}
-                    style={{
-                      color:
-                        typedWord.length > index && typedWord[index] === char
-                          ? "red"
-                          : "black", // 修正: "blacak" -> "black"
-                    }}
-                  >
-                    {char}
-                  </span>
-                );
-              })}
+              {currentWord?.romaji[0]
+                ?.split("")
+                .map((char: string, index: number) => {
+                  // Check if the typed character is incorrect and play the miss audio
+                  if (typedWord.length > index && typedWord[index] !== char) {
+                    new Audio("/miss.mov").play();
+                  }
+                  return (
+                    <span
+                      key={index}
+                      style={{
+                        color:
+                          typedWord.length > index && typedWord[index] === char
+                            ? "red"
+                            : "black", // 修正: "blacak" -> "black"
+                      }}
+                    >
+                      {char}
+                    </span>
+                  );
+                })}
             </p>
           </div>
         )}

@@ -1,10 +1,6 @@
 /*
 |--------------------------------------------------------------------------
-| タイピングの単語
+| 音声
 |--------------------------------------------------------------------------
 */
-export interface Word {
-  kanji: string;
-  furigana: string;
-  romaji: string[];
-}
+export type GameAudio = HTMLAudioElement | null;
