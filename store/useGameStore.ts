@@ -1,13 +1,12 @@
 import { create } from "zustand";
 
+import { failureAudio, stopAudio } from "@/actions/audioActions";
 import {
   endGame,
-  failureAudio,
   handleTyping,
   resetGame,
   selectNewWord,
   startGame,
-  stopAudio,
 } from "@/actions/gameActions";
 import { GameState } from "@/types/gameState";
 import { loadLevels } from "@/utils/loadLevels";
@@ -35,7 +34,7 @@ export const useGameStore = create<GameState>((set, get) => {
     resetGame: () => resetGame(set, get),
     handleTyping: handleTyping(set, get),
     selectNewWord: () => selectNewWord(set, get),
-    failureAudio: () => failureAudio(), // 修正
+    failureAudio: () => failureAudio(),
     stopAudio: () => stopAudio(get),
   };
 });

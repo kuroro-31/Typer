@@ -1,3 +1,8 @@
+/*
+|--------------------------------------------------------------------------
+| レベル画面
+|--------------------------------------------------------------------------
+*/
 import React, { useEffect } from "react";
 
 import { useGameStore } from "@/store/useGameStore";
@@ -48,9 +53,11 @@ const LevelScreen: React.FC = () => {
     <div className="h-full flex flex-col items-center justify-center p-4">
       {gameInProgress && (
         <div className="mx-auto my-8 text-center">
-          <p className="text-lg">{currentWord?.furigana}</p>
-          <p className="text-3xl font-semibold">{currentWord?.kanji}</p>
-          <p className="text-xl">
+          <p className="text-xl mb-2">{currentWord?.furigana}</p>
+          <p className="text-4xl font-semibold tracking-widest mb-1">
+            {currentWord?.kanji}
+          </p>
+          <p className="text-2xl">
             {(
               currentWord?.romaji.find((r) => r.startsWith(typedWord)) ||
               currentWord?.romaji.find((r) => r === currentWord.romaji[0])
@@ -79,13 +86,13 @@ const LevelScreen: React.FC = () => {
       )}
       {!gameInProgress && (
         <div className="">
-          <p className="flex justify-center text-xl">
+          <p className="flex justify-center text-2xl">
             タイピングではキーボードを使います
           </p>
-          <p className="flex justify-center text-lg mt-4">
+          <p className="flex justify-center text-xl mt-4">
             スペースキーを押したらスタート！
           </p>
-          <p className="mt-4">
+          <p className="text-lg mt-4">
             ゲーム中に「ESCキー」を押すと、スタート画面に戻ります
           </p>
         </div>

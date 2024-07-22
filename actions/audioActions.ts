@@ -1,10 +1,15 @@
+/*
+|--------------------------------------------------------------------------
+| 音声の設定
+|--------------------------------------------------------------------------
+*/
 export const startAudio = () => {
   const audio = new Audio("./start.mp3");
   audio.play().catch((error) => console.error("Audio playback failed:", error));
 };
 
 export const successAudio = () => {
-  const audio = new Audio("./success.mp3");
+  const audio = new Audio("./success.mov");
   audio.play().catch((error) => console.error("Audio playback failed:", error));
 };
 

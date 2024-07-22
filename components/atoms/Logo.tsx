@@ -1,6 +1,8 @@
 const Logo = () => (
   <>
-    <h1 className="text-xl font-semibold tracking-[6px]">連打王</h1>
+    <h1 className="text-white text-2xl font-semibold tracking-[2px] sawarabi-mincho-regular">
+      気づいたらタイピングの王になっていた件
+    </h1>
   </>
 );
 

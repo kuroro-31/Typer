@@ -1,3 +1,8 @@
+/*
+|--------------------------------------------------------------------------
+| ゲームのアクション
+|--------------------------------------------------------------------------
+*/
 import { StoreApi } from "zustand";
 
 import { GameState } from "@/types/gameState";
@@ -7,8 +12,9 @@ import {
   failureAudio,
   startAudio,
   stopAudio,
+  successAudio,
   typingAudio,
-} from "./audioActions"; // インポート
+} from "./audioActions";
 
 export const startGame = async (
   set: StoreApi<GameState>["setState"],
@@ -83,6 +89,7 @@ export const handleTyping =
       set((state) => ({ typedWord: state.typedWord + input }));
       typingAudio(); // タイピング音声を再生
       if (typedWord + input === matchedRomaji) {
+        successAudio(); // 成功時に音声を再生
         set((state) => ({ score: state.score + 1 }));
         selectNewWord();
         set({ typedWord: "" });

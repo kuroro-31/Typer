@@ -1,3 +1,8 @@
+/*
+|--------------------------------------------------------------------------
+| ゲーム中の画面
+|--------------------------------------------------------------------------
+*/
 "use client";
 
 import HomeScreen from "@/components/top/HomeScreen";
@@ -32,14 +37,14 @@ export default function Home() {
 
   return (
     <div className="mx-auto flex items-center">
-      <div className="w-[500px] h-[420px] bg-white rounded-[17px] flex flex-col">
+      <div className="relative w-[600px] h-[440px] bg-white rounded-lg flex flex-col">
         <div className="h-full flex justify-center items-center">
           {screen === "home" && <HomeScreen />}
           {screen === "level" && <LevelScreen />}
           {screen === "result" && <ResultScreen />}{" "}
         </div>
 
-        <div className="p-4 flex justify-end mt-auto">
+        <div className="absolute bottom-0 right-0 p-6 inline-flex justify-end mt-auto text-lg">
           {screen !== "home" && (
             <button
               onClick={() => {
