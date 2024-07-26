@@ -13,7 +13,7 @@ const HomeScreen: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold">転生したらタイピングできてた件</h2>
+        <h2 className="text-3xl font-bold">転生しなくてもタイピングできた件</h2>
       </div>
       <div className="inline-flex flex-col">
         <button
