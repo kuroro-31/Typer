@@ -65,7 +65,7 @@ html {
 }
 
 body {
-  @apply text-[#2c3e50] bg-[#F1F2F5];
+  @apply text-[#050505] bg-[#F1F2F5];
   font-size: 14.4px;
   font-family: "Noto Sans JP", sans-serif;
   font-optical-sizing: auto;
@@ -107,4 +107,22 @@ button {
   &-oni {
     @apply text-dribbble bg-dribbble bg-opacity-[15%] hover:bg-opacity-[25%] rounded-[12.8px] py-2 px-8 text-lg transition-all font-semibold;
   }
+}
+
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-in;
+  }
+  50% {
+    transform: translateY(-20px);
+    animation-timing-function: ease-out;
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1.5s infinite;
 }

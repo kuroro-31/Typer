@@ -4,6 +4,7 @@ import { failureAudio, stopAudio } from "@/actions/audioActions";
 import {
   endGame,
   handleTyping,
+  nextWord,
   resetGame,
   selectNewWord,
   startGame,
@@ -28,14 +29,28 @@ export const useGameStore = create<GameState>((set, get) => {
     levels: [],
     wordsForCurrentLevel: [],
     usedWords: [],
+    progress: 0, // プログレスバーの初期値を追加
     setScreen: (screen) => set({ screen }),
     startGame: () => startGame(set, get),
     endGame: () => endGame(set, get),
     resetGame: () => resetGame(set, get),
     handleTyping: handleTyping(set, get),
     selectNewWord: () => selectNewWord(set, get),
+    nextWord: () => nextWord(set, get), // nextWord関数を追加
+    resetProgressBar: () => set({ progress: 0 }), // プログレスバーのリセット関数を追加
     failureAudio: () => failureAudio(),
-    stopAudio: () => stopAudio(get),
+    stopAudio: () => {
+      const { gameAudio } = get();
+      if (gameAudio) {
+        stopAudio(gameAudio);
+      }
+    }, // 修正: gameAudioを引数として渡す
+    playAudio: () => {
+      const { gameAudio } = get();
+      if (gameAudio) {
+        gameAudio.play();
+      }
+    }, // playAudio関数を追加
   };
 });
 

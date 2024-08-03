@@ -76,7 +76,7 @@ export const handleTyping =
     get: StoreApi<GameState>["getState"]
   ) =>
   (input: string) => {
-    const { currentWord, typedWord, selectNewWord } = get();
+    const { currentWord, typedWord, selectNewWord, resetProgressBar } = get();
     if (!currentWord) return;
 
     const matchedRomaji = currentWord.romaji.find((romaji) =>
@@ -92,6 +92,7 @@ export const handleTyping =
         successAudio(); // 成功時に音声を再生
         set((state) => ({ score: state.score + 1 }));
         selectNewWord();
+        resetProgressBar(); // プログレスバーをリセット
         set({ typedWord: "" });
       }
     } else {
@@ -130,4 +131,27 @@ export const selectNewWord = async (
       usedWords: [...state.usedWords, newWord],
     }));
   }
+};
+
+export const nextWord = (
+  set: StoreApi<GameState>["setState"],
+  get: StoreApi<GameState>["getState"]
+) => {
+  const { wordsForCurrentLevel, usedWords } = get();
+  const remainingWords = wordsForCurrentLevel.filter(
+    (word: Word) => !usedWords.some((usedWord) => usedWord.kanji === word.kanji)
+  );
+
+  if (remainingWords.length === 0) {
+    set({ gameInProgress: false });
+    return;
+  }
+
+  const nextWord =
+    remainingWords[Math.floor(Math.random() * remainingWords.length)];
+  set((state) => ({
+    currentWord: nextWord,
+    typedWord: "",
+    usedWords: [...state.usedWords, nextWord],
+  }));
 };

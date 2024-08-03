@@ -37,7 +37,7 @@ export default function Home() {
 
   return (
     <div className="mx-auto flex items-center">
-      <div className="relative w-[600px] h-[440px] bg-white rounded-lg flex flex-col">
+      <div className="relative w-[580px] h-[420px] bg-white rounded-xl flex flex-col shadow-md">
         <div className="h-full flex justify-center items-center">
           {screen === "home" && <HomeScreen />}
           {screen === "level" && <LevelScreen />}

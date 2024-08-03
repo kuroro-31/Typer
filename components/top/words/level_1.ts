@@ -3,116 +3,174 @@
 | レベル1の単語
 |--------------------------------------------------------------------------
 */
-import { Word } from "@/types/word";
+import { Word } from '@/types/word';
 
 const level1: Word[] = [
   {
-    kanji: "麒麟児",
-    furigana: "きりんじ",
-    romaji: ["kirinzi", "kirinnzi", "kirinji", "kirinnji"],
-  },
-  { kanji: "外連味", furigana: "けれんみ", romaji: ["kerenmi", "kerennmi"] },
-  {
-    kanji: "真善美",
-    furigana: "しんぜんび",
-    romaji: ["sinzenbi", "sinzennbi", "sinnzennbi"],
-  },
-  { kanji: "千里眼", furigana: "せんりがん", romaji: ["senrigann"] },
-  {
-    kanji: "天地人",
-    furigana: "てんちじん",
-    romaji: ["tentizinn", "tentijinn", "tenchijinn", "tenchizinn"],
-  },
-  { kanji: "登竜門", furigana: "とうりゅうもん", romaji: ["touryuumonn"] },
-  {
-    kanji: "伏魔殿",
-    furigana: "ふくまでん",
-    romaji: ["hukumadenn", "fukumadenn"],
+    kanji: "善は急げ",
+    furigana: "ぜんはいそげ",
+    romaji: ["zennhaisoge"], // 10文字
   },
   {
-    kanji: "不世出",
-    furigana: "ふせいしゅつ",
-    romaji: ["huseisyutu", "fuseishutu"],
+    kanji: "猿に釘",
+    furigana: "ぬかにくぎ",
+    romaji: ["nukanikugi"], // 10文字
   },
   {
-    kanji: "不退転",
-    furigana: "ふたいてん",
-    romaji: ["hutaitenn", "futaitenn"],
-  },
-  { kanji: "色眼鏡", furigana: "いろめがね", romaji: ["iromegane"] },
-  {
-    kanji: "有頂天",
-    furigana: "うちょうてん",
-    romaji: ["utyoutenn", "uchoutenn"],
-  },
-  { kanji: "大御所", furigana: "おおごしょ", romaji: ["oogosho", "oogosyo"] },
-  { kanji: "十八番", furigana: "おはこ", romaji: ["ohako"] },
-  {
-    kanji: "金字塔",
-    furigana: "きんじとう",
-    romaji: ["kinzitou", "kinnzitou", "kinjitou", "kinnjitou"],
-  },
-  { kanji: "下馬評", furigana: "げばひょう", romaji: ["gebahyou"] },
-  { kanji: "紅一点", furigana: "こういってん", romaji: ["kouittenn"] },
-  {
-    kanji: "金輪際",
-    furigana: "こんりんざい",
-    romaji: ["konrinzai", "konnrinzai"],
-  },
-  { kanji: "修羅場", furigana: "しゅらば", romaji: ["syuraba", "shuraba"] },
-  { kanji: "太鼓判", furigana: "たいこばん", romaji: ["taikobann"] },
-  {
-    kanji: "天王山",
-    furigana: "てんのうざん",
-    romaji: ["tennouzann", "tennnouzann"],
-  },
-  { kanji: "檜舞台", furigana: "ひのきぶたい", romaji: ["hinokibutai"] },
-  {
-    kanji: "風物詩",
-    furigana: "ふうぶつし",
-    romaji: ["huubutusi", "fuubutusi"],
+    kanji: "痩せの大食い",
+    furigana: "やせのおおぐい",
+    romaji: ["yasenooogui"], // 11文字
   },
   {
-    kanji: "胸算用",
-    furigana: "むなざんよう",
-    romaji: ["munazanyou", "munazannyou"],
+    kanji: "犬猿の仲",
+    furigana: "けんえんのなか",
+    romaji: ["kennennnonaka"], // 11文字
   },
   {
-    kanji: "天邪鬼",
-    furigana: "あまのじゃく",
-    romaji: ["amanojaku", "amanozyaku"],
+    kanji: "猫に小判",
+    furigana: "ねこにこばん",
+    romaji: ["nekonikobann"], // 11文字
   },
   {
-    kanji: "安本丹",
-    furigana: "あんぽんたん",
-    romaji: ["anpontann", "annpontann"],
-  },
-  { kanji: "兎兵法", furigana: "うさぎへいほう", romaji: ["usagiheihou"] },
-  {
-    kanji: "社用族",
-    furigana: "しゃようぞく",
-    romaji: ["syayouzoku", "shayouzoku"],
+    kanji: "言わぬが花",
+    furigana: "いわぬがはな",
+    romaji: ["iwanugahana"], // 11文字
   },
   {
-    kanji: "素寒貧",
-    furigana: "すかんぴん",
-    romaji: ["sukanpinn", "sukannpinn"],
+    kanji: "嘘も方便",
+    furigana: "うそもほうべん",
+    romaji: ["usomohoubenn"], // 12文字
   },
-  { kanji: "素頓狂", furigana: "すっとんきょう", romaji: ["suttonkyou"] },
-  { kanji: "太平楽", furigana: "たいへいらく", romaji: ["taiheiraku"] },
-  { kanji: "棚牡丹", furigana: "たなぼた", romaji: ["tanabota"] },
   {
-    kanji: "珍紛漢",
-    furigana: "ちんぷんかん",
-    romaji: ["tinpunkann", "tinnpunkann", "tinpunnkann", "tinnpunnkann"],
+    kanji: "鬼に金棒",
+    furigana: "おににかなぼう",
+    romaji: ["oninikanabou"], // 12文字
   },
-  { kanji: "出鱈目", furigana: "でたらめ", romaji: ["detarame"] },
   {
-    kanji: "唐変木",
-    furigana: "とうへんぼく",
-    romaji: ["touhenboku", "touhennboku"],
+    kanji: "鬼の霍乱",
+    furigana: "おにのかくらん",
+    romaji: ["oninokakurann"], // 12文字
   },
-  // { kanji: "頓珍漢", furigana: "とんちんかん", romaji: ["tonsinkan"] },
+  {
+    kanji: "勝てば官軍",
+    furigana: "かてばかんぐん",
+    romaji: ["katebakangunn"], // 12文字
+  },
+  {
+    kanji: "腐っても鯛",
+    furigana: "くさってもたい",
+    romaji: ["kusattemotai"], // 12文字
+  },
+  {
+    kanji: "住めば都",
+    furigana: "すめばみやこ",
+    romaji: ["sumebamiyako"], // 12文字
+  },
+  {
+    kanji: "短気は損気",
+    furigana: "たんきはそんき",
+    romaji: ["tannkihasonnki"], // 12文字
+  },
+  {
+    kanji: "月とすっぽん",
+    furigana: "つきとすっぽん",
+    romaji: ["tukitosupponn"], // 12文字
+  },
+  {
+    kanji: "逃げるが勝ち",
+    furigana: "にげるがかち",
+    romaji: ["nigerugakati"], // 12文字
+  },
+  {
+    kanji: "豚に真珠",
+    furigana: "ぶたにしんじゅ",
+    romaji: ["butanisinju", "butanisinzyu"], // 12文字
+  },
+  {
+    kanji: "あばたもえくぼ",
+    furigana: "あばたもえくぼ",
+    romaji: ["abatamoekubo"], // 12文字
+  },
+  {
+    kanji: "餅は餅屋",
+    furigana: "もちはもちや",
+    romaji: ["motihamotiya"], // 12文字
+  },
+  {
+    kanji: "目の上のこぶ",
+    furigana: "めのうえのこぶ",
+    romaji: ["menouenokobu"], // 12文字
+  },
+  {
+    kanji: "花より団子",
+    furigana: "はなよりだんご",
+    romaji: ["hanayoridango"], // 13文字
+  },
+  {
+    kanji: "氏より育ち",
+    furigana: "うじよりそだち",
+    romaji: ["uziyorisodati", "ujiyorisodati"], // 13文字
+  },
+  {
+    kanji: "虻蜂取らず",
+    furigana: "あぶはちとらず",
+    romaji: ["abuhatitorazu"], // 13文字
+  },
+  {
+    kanji: "急がば回れ",
+    furigana: "いそがばまわれ",
+    romaji: ["isogabamaware"], // 13文字
+  },
+  {
+    kanji: "病は気から",
+    furigana: "やまいはきから",
+    romaji: ["yamaihakikara"], // 13文字
+  },
+  {
+    kanji: "時は金なり",
+    furigana: "ときはかねなり",
+    romaji: ["tokihakanenari"], // 14文字
+  },
+  {
+    kanji: "貧乏暇なし",
+    furigana: "びんぼうひまなし",
+    romaji: ["binnbouhimanasi"], // 14文字
+  },
+  {
+    kanji: "なくて七癖",
+    furigana: "なくてななくせ",
+    romaji: ["nakutenanakuse"], // 14文字
+  },
+  {
+    kanji: "知らぬが仏",
+    furigana: "しらぬがほとけ",
+    romaji: ["siranugahotoke"], // 14文字
+  },
+  {
+    kanji: "身から出たさび",
+    furigana: "みからでたさび",
+    romaji: ["mikaradetasabi"], // 14文字
+  },
+  {
+    kanji: "論より証拠",
+    furigana: "ろんよりしょうこ",
+    romaji: ["ronnyorisyouko"], // 14文字
+  },
+  {
+    kanji: "元の木阿弥",
+    furigana: "もとのもくあみ",
+    romaji: ["motonomokuami"], // 15文字
+  },
+  {
+    kanji: "棚からぼた餅",
+    furigana: "たなからぼたもち",
+    romaji: ["tanakarabotamoti"], // 16文字
+  },
+  {
+    kanji: "灯台下暗し",
+    furigana: "とうだいもとくらし",
+    romaji: ["toudaimotokurasi"], // 16文字
+  },
 ];
 
 export default level1;

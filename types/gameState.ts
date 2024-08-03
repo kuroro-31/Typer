@@ -14,6 +14,7 @@ export interface GameState {
   levels: Word[][];
   wordsForCurrentLevel: Word[];
   usedWords: Word[];
+  progress: number; // プログレスバーのプロパティを追加
   setScreen: (screen: string) => void;
   startGame: () => void;
   endGame: () => void;
@@ -22,4 +23,7 @@ export interface GameState {
   selectNewWord: () => void;
   failureAudio: () => void;
   stopAudio: () => void;
+  resetProgressBar: () => void; // プログレスバーのリセット関数を追加
+  playAudio: () => void; // playAudio関数を追加
+  nextWord: () => void; // nextWord関数を追加
 }
