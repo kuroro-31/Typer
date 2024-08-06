@@ -5,7 +5,7 @@
 */
 import React from "react";
 
-import { useGameStore } from "@/store/useGameStore";
+import useGameStore from "@/store/useGameStore";
 
 const HomeScreen: React.FC = () => {
   const setScreen = useGameStore((state) => state.setScreen);

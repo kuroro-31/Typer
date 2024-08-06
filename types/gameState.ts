@@ -1,4 +1,4 @@
-import { Word } from "@/types/word";
+import { Word } from '@/types/word';
 
 export interface GameState {
   screen: string;
@@ -26,4 +26,7 @@ export interface GameState {
   resetProgressBar: () => void; // プログレスバーのリセット関数を追加
   playAudio: () => void; // playAudio関数を追加
   nextWord: () => void; // nextWord関数を追加
+  currentLevel: number; // 現在のレベル
+  experience: number; // 総経験値
+  levelExperience: { [key: number]: number }; // 各レベルの経験値
 }

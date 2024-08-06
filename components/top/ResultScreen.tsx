@@ -5,7 +5,7 @@
 */
 import React from "react";
 
-import { useGameStore } from "@/store/useGameStore"; // インポート追加
+import useGameStore from "@/store/useGameStore";
 
 const ResultScreen: React.FC = () => {
   const score = useGameStore((state) => state.score); // スコアを取得

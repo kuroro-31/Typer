@@ -3,9 +3,9 @@
 | レベル画面
 |--------------------------------------------------------------------------
 */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
-import { useGameStore } from "@/store/useGameStore";
+import useGameStore from '@/store/useGameStore';
 
 const LevelScreen: React.FC = () => {
   const {
@@ -19,7 +19,8 @@ const LevelScreen: React.FC = () => {
     resetGame,
     playAudio,
     handleTyping,
-    nextWord, // 新しいアクションを追加
+    nextWord,
+    levelExperience,
   } = useGameStore((state) => ({
     gameInProgress: state.gameInProgress,
     currentWord: state.currentWord,
@@ -31,7 +32,8 @@ const LevelScreen: React.FC = () => {
     resetGame: state.resetGame,
     playAudio: state.playAudio,
     handleTyping: state.handleTyping,
-    nextWord: state.nextWord, // 新しいアクションを追加
+    nextWord: state.nextWord,
+    levelExperience: state.levelExperience,
   }));
 
   const [progress, setProgress] = useState(0);
@@ -85,16 +87,11 @@ const LevelScreen: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(progressInterval);
-  }, [gameInProgress, nextWord]);
-
-  useEffect(() => {
-    if (!gameInProgress) {
-      setProgress(0);
-    }
   }, [gameInProgress]);
 
   useEffect(() => {
-    setProgress(0); // ワードが切り替わるたびにプログレスバーをリセット
+    // ワードが変わったタイミングでログを出力
+    console.log(`Level experience:`, levelExperience);
   }, [currentWord]);
 
   return (
@@ -102,6 +99,18 @@ const LevelScreen: React.FC = () => {
       {gameInProgress && (
         <div className="w-full pl-2 pb-2 border-b">
           <p className="mt-auto text-2xl font-semibold">残り {timer}秒</p>
+          <p className="mt-auto text-xl">
+            レベル 1 のスコア: {levelExperience[1] || 0}
+          </p>
+          <p className="mt-auto text-xl">
+            レベル 2 のスコア: {levelExperience[2] || 0}
+          </p>
+          <p className="mt-auto text-xl">
+            レベル 3 のスコア: {levelExperience[3] || 0}
+          </p>
+          <p className="mt-auto text-xl">
+            レベル 4 のスコア: {levelExperience[4] || 0}
+          </p>
         </div>
       )}
 

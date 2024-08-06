@@ -1,14 +1,10 @@
-/*
-|--------------------------------------------------------------------------
-| ゲーム中の画面
-|--------------------------------------------------------------------------
-*/
 "use client";
 
-import HomeScreen from "@/components/top/HomeScreen";
-import LevelScreen from "@/components/top/LevelScreen";
-import ResultScreen from "@/components/top/ResultScreen";
-import { useGameStore } from "@/store/useGameStore";
+import useGameStore from "@/store/useGameStore";
+
+import HomeScreen from "./HomeScreen";
+import LevelScreen from "./LevelScreen";
+import ResultScreen from "./ResultScreen";
 
 export default function Home() {
   const {
