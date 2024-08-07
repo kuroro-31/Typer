@@ -1,10 +1,16 @@
-import { StoreApi } from 'zustand';
+import { StoreApi } from "zustand";
 
-import useGameStore from '@/store/useGameStore';
-import { GameState } from '@/types/gameState';
-import { Word } from '@/types/word';
+import useGameStore from "@/store/useGameStore";
+import { GameState } from "@/types/gameState";
+import { Word } from "@/types/word";
 
-import { failureAudio, startAudio, stopAudio, successAudio, typingAudio } from './audioActions';
+import {
+  failureAudio,
+  startAudio,
+  stopAudio,
+  successAudio,
+  typingAudio,
+} from "./audioActions";
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +52,7 @@ export const startGame = async (
     typedWord: "",
     screen: "level",
     timer: 120,
+    progress: 0,
   });
   await selectNewWord();
   if (gameAudio) {
