@@ -1,15 +1,16 @@
-/*
-|--------------------------------------------------------------------------
-| ゲームのアクション
-|--------------------------------------------------------------------------
-*/
 import { StoreApi } from 'zustand';
 
+import useGameStore from '@/store/useGameStore';
 import { GameState } from '@/types/gameState';
 import { Word } from '@/types/word';
 
 import { failureAudio, startAudio, stopAudio, successAudio, typingAudio } from './audioActions';
 
+/*
+|--------------------------------------------------------------------------
+| 経験値を追加
+|--------------------------------------------------------------------------
+*/
 export const addExperience = (
   set: StoreApi<GameState>["setState"],
   get: StoreApi<GameState>["getState"],
@@ -21,17 +22,14 @@ export const addExperience = (
     ...levelExperience,
     [level]: (levelExperience[level] || 0) + 1,
   };
-
-  // デバッグ情報をコンソールに出力
-  console.log(`Adding experience to level: ${level}`);
-  console.log(`Current experience: ${experience}`);
-  console.log(`New experience: ${newExperience}`);
-  console.log(`Current level experience:`, levelExperience);
-  console.log(`New level experience:`, newLevelExperience);
-
   set({ experience: newExperience, levelExperience: newLevelExperience });
 };
 
+/*
+|--------------------------------------------------------------------------
+| ゲームを開始
+|--------------------------------------------------------------------------
+*/
 export const startGame = async (
   set: StoreApi<GameState>["setState"],
   get: StoreApi<GameState>["getState"]
@@ -57,6 +55,11 @@ export const startGame = async (
   }
 };
 
+/*
+|--------------------------------------------------------------------------
+| ゲームを終了
+|--------------------------------------------------------------------------
+*/
 export const endGame = (
   set: StoreApi<GameState>["setState"],
   get: StoreApi<GameState>["getState"]
@@ -70,6 +73,11 @@ export const endGame = (
   stopAudio(gameAudio); // 音声停止
 };
 
+/*
+|--------------------------------------------------------------------------
+| ゲームをリセット
+|--------------------------------------------------------------------------
+*/
 export const resetGame = (
   set: StoreApi<GameState>["setState"],
   get: StoreApi<GameState>["getState"]
@@ -88,65 +96,16 @@ export const resetGame = (
   });
 };
 
-export const handleTyping = (
-  set: StoreApi<GameState>["setState"],
-  get: StoreApi<GameState>["getState"]
-) => {
-  return (input: string) => {
-    const {
-      currentWord,
-      typedWord,
-      selectNewWord,
-      resetProgressBar,
-      currentLevel,
-    } = get();
-    if (!currentWord) return;
-
-    const matchedRomaji = currentWord.romaji.find((romaji) =>
-      romaji.startsWith(typedWord + input)
-    );
-
-    if (matchedRomaji) {
-      set((state) => ({ typedWord: state.typedWord + input }));
-      typingAudio(); // タイピング音声を再生
-      if (typedWord + input === matchedRomaji) {
-        successAudio(); // 成功時に音声を再生
-
-        // スコアと経験値を更新
-        set((state) => {
-          const wordLevel = currentWord.level ?? 1; // currentWord.levelがundefinedの場合は1を使用
-          const newLevelExperience = {
-            ...state.levelExperience,
-            [wordLevel]: (state.levelExperience[wordLevel] || 0) + 1,
-          };
-
-          console.log(
-            `Word completed: ${currentWord.kanji}, Level experience:`,
-            newLevelExperience
-          );
-
-          return {
-            score: state.score + (currentWord.score || 0),
-            levelExperience: newLevelExperience,
-          };
-        });
-
-        selectNewWord();
-        set({ typedWord: "" });
-        resetProgressBar(); // プログレスバーをリセット
-      }
-    } else {
-      set((state) => ({ missCount: state.missCount + 1 }));
-      console.log("Playing audio for incorrect input"); // デバッグ用ログ
-      failureAudio(); // 失敗時に音声を再生
-    }
-  };
-};
-
+/*
+|--------------------------------------------------------------------------
+| 新しいワードを選択
+|--------------------------------------------------------------------------
+*/
 export const selectNewWord = async (
   set: StoreApi<GameState>["setState"],
   get: StoreApi<GameState>["getState"]
 ) => {
+  console.log("新しいワードを選択");
   const {
     levels,
     currentLevel,
@@ -182,6 +141,11 @@ export const selectNewWord = async (
   }
 };
 
+/*
+|--------------------------------------------------------------------------
+| 次のワードを選択
+|--------------------------------------------------------------------------
+*/
 export const nextWord = (
   set: StoreApi<GameState>["setState"],
   get: StoreApi<GameState>["getState"]
@@ -209,4 +173,61 @@ export const nextWord = (
   const currentLevelIndex = levelOrder.indexOf(currentLevel);
   const nextLevelIndex = (currentLevelIndex + 1) % levelOrder.length;
   set({ currentLevel: levelOrder[nextLevelIndex] });
+};
+
+/*
+|--------------------------------------------------------------------------
+| タイピング処理
+|--------------------------------------------------------------------------
+*/
+export const handleTyping = (
+  set: StoreApi<GameState>["setState"],
+  get: StoreApi<GameState>["getState"]
+) => {
+  return (input: string) => {
+    const {
+      currentWord,
+      typedWord,
+      selectNewWord,
+      currentLevel,
+      resetProgressBar,
+    } = get(); // resetProgressBarを取得
+    if (!currentWord) return;
+
+    const matchedRomaji = currentWord.romaji.find((romaji) =>
+      romaji.startsWith(typedWord + input)
+    );
+
+    if (matchedRomaji) {
+      console.log("マッチしたローマ字:", matchedRomaji);
+      set((state) => ({ typedWord: state.typedWord + input }));
+      typingAudio(); // タイピング音声を再生
+      if (typedWord + input === matchedRomaji) {
+        successAudio(); // 成功時に音声を再生
+
+        // スコアと経験値を更新
+        set((state) => {
+          const wordLevel = currentWord.level ?? 1; // currentWord.levelがundefinedの場合は1を使用
+          const newLevelExperience = {
+            ...state.levelExperience,
+            [wordLevel]: (state.levelExperience[wordLevel] || 0) + 1,
+          };
+
+          return {
+            score: state.score + (currentWord.score || 0),
+            levelExperience: newLevelExperience,
+          };
+        });
+
+        console.log("タイピング成功:", currentWord); // タイピング成功時のデバッグログ
+        selectNewWord();
+        set({ typedWord: "" });
+        resetProgressBar(); // プログレスバーをリセット
+        useGameStore.setState({ progress: 0 }); // プログレスバーをリセット
+      }
+    } else {
+      set((state) => ({ missCount: state.missCount + 1 }));
+      failureAudio(); // 失敗時に音声を再生
+    }
+  };
 };

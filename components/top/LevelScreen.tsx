@@ -3,9 +3,9 @@
 | レベル画面
 |--------------------------------------------------------------------------
 */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from "react";
 
-import useGameStore from '@/store/useGameStore';
+import useGameStore from "@/store/useGameStore";
 
 const LevelScreen: React.FC = () => {
   const {
@@ -21,6 +21,8 @@ const LevelScreen: React.FC = () => {
     handleTyping,
     nextWord,
     levelExperience,
+    progress,
+    setProgress,
   } = useGameStore((state) => ({
     gameInProgress: state.gameInProgress,
     currentWord: state.currentWord,
@@ -34,9 +36,9 @@ const LevelScreen: React.FC = () => {
     handleTyping: state.handleTyping,
     nextWord: state.nextWord,
     levelExperience: state.levelExperience,
+    progress: state.progress,
+    setProgress: state.setProgress,
   }));
-
-  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -73,26 +75,35 @@ const LevelScreen: React.FC = () => {
     return () => clearInterval(interval);
   }, [gameInProgress]);
 
+  // プログレスバーを進める
   useEffect(() => {
     if (!gameInProgress) return;
-
     const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev + 1 >= 6) {
+      useGameStore.setState((state) => {
+        if (state.progress + 1 >= 6) {
           nextWord(); // 6秒経過したら次のワードに進む
-          return 0;
+          return { progress: 0 };
         }
-        return prev + 1;
+        return { progress: state.progress + 1 };
       });
     }, 1000);
-
     return () => clearInterval(progressInterval);
-  }, [gameInProgress]);
+  }, [gameInProgress, nextWord]);
 
   useEffect(() => {
-    // ワードが変わったタイミングでログを出力
-    console.log(`Level experience:`, levelExperience);
-  }, [currentWord]);
+    if (progress === 0) {
+      const progressBar = document.querySelector(
+        ".progress-bar"
+      ) as HTMLElement;
+      if (progressBar) {
+        progressBar.style.width = "0%"; // プログレスバーの幅をリセット
+        progressBar.style.transition = "none";
+        setTimeout(() => {
+          progressBar.style.transition = "width 1s linear";
+        }, 0);
+      }
+    }
+  }, [progress]);
 
   return (
     <div className="w-full h-full flex flex-col items-center p-4">
@@ -119,7 +130,7 @@ const LevelScreen: React.FC = () => {
         <div className="w-full">
           <div className="w-full h-[10px] bg-[#F1F2F5] rounded overflow-hidden">
             <div
-              className="h-full bg-primary"
+              className="h-full bg-primary progress-bar"
               style={{
                 width: `${(progress / 5) * 100}%`,
                 transition: progress === 0 ? "none" : "width 1s linear",

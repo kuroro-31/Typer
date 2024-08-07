@@ -1,11 +1,17 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-import { failureAudio, stopAudio } from '@/actions/audioActions';
+import { failureAudio, stopAudio } from "@/actions/audioActions";
 import {
-  addExperience, endGame, handleTyping, nextWord, resetGame, selectNewWord, startGame
-} from '@/actions/gameActions';
-import { GameState } from '@/types/gameState';
-import { loadLevels } from '@/utils/loadLevels';
+  addExperience,
+  endGame,
+  handleTyping,
+  nextWord,
+  resetGame,
+  selectNewWord,
+  startGame,
+} from "@/actions/gameActions";
+import { GameState } from "@/types/gameState";
+import { loadLevels } from "@/utils/loadLevels";
 
 const useGameStore = create<GameState>((set, get) => ({
   screen: "home",
@@ -22,6 +28,7 @@ const useGameStore = create<GameState>((set, get) => ({
   wordsForCurrentLevel: [],
   usedWords: [],
   progress: 0, // プログレスバーの初期値を追加
+  progressBar: 0, // プログレスバーの初期値を追加
   setScreen: (screen) => set({ screen }),
   startGame: () => startGame(set, get),
   endGame: () => endGame(set, get),
@@ -31,7 +38,12 @@ const useGameStore = create<GameState>((set, get) => ({
   nextWord: () => {
     setTimeout(() => nextWord(set, get), 0); // setTimeoutを使用してレンダリング中のsetState呼び出しを回避
   },
-  resetProgressBar: () => set({ progress: 0 }), // プログレスバーのリセット関数を追加
+  resetProgressBar: () => {
+    console.log("プログレスバーをリセット前2"); // デバッグログ追加
+    set({ progressBar: 0 });
+    console.log("プログレスバーをリセット後2"); // デバッグログ追加
+  }, // プログレスバーのリセット関数を追加
+  setProgress: (progress: number) => set({ progress }), // プログレスバーの進行を管理する関数を追加
   failureAudio: () => failureAudio(),
   stopAudio: () => {
     const { gameAudio } = get();

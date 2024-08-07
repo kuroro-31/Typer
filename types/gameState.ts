@@ -1,4 +1,4 @@
-import { Word } from '@/types/word';
+import { Word } from "@/types/word";
 
 export interface GameState {
   screen: string;
@@ -29,4 +29,6 @@ export interface GameState {
   currentLevel: number; // 現在のレベル
   experience: number; // 総経験値
   levelExperience: { [key: number]: number }; // 各レベルの経験値
+  progressBar: number; // progressBarプロパティを追加
+  setProgress: (progress: number) => void; // setProgress関数を追加
 }
