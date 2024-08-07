@@ -39,9 +39,7 @@ const useGameStore = create<GameState>((set, get) => ({
     setTimeout(() => nextWord(set, get), 0); // setTimeoutを使用してレンダリング中のsetState呼び出しを回避
   },
   resetProgressBar: () => {
-    console.log("プログレスバーをリセット前2"); // デバッグログ追加
     set({ progressBar: 0 });
-    console.log("プログレスバーをリセット後2"); // デバッグログ追加
   }, // プログレスバーのリセット関数を追加
   setProgress: (progress: number) => set({ progress }), // プログレスバーの進行を管理する関数を追加
   failureAudio: () => failureAudio(),
