@@ -110,18 +110,6 @@ const LevelScreen: React.FC = () => {
       {gameInProgress && (
         <div className="w-full pl-2 pb-2 border-b">
           <p className="mt-auto text-2xl font-semibold">残り {timer}秒</p>
-          <p className="mt-auto text-xl">
-            レベル 1 のスコア: {levelExperience[1] || 0}
-          </p>
-          <p className="mt-auto text-xl">
-            レベル 2 のスコア: {levelExperience[2] || 0}
-          </p>
-          <p className="mt-auto text-xl">
-            レベル 3 のスコア: {levelExperience[3] || 0}
-          </p>
-          <p className="mt-auto text-xl">
-            レベル 4 のスコア: {levelExperience[4] || 0}
-          </p>
         </div>
       )}
 
@@ -196,6 +184,21 @@ const LevelScreen: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {gameInProgress && (
+        <div className="w-full pl-2 pb-2 border-b flex">
+          <p className="mt-auto text-xl">100 × {levelExperience[1] || 0}</p>
+          <p className="mt-auto ml-4 text-xl">
+            200 × {levelExperience[2] || 0}
+          </p>
+          <p className="mt-auto ml-4 text-xl">
+            300 × {levelExperience[3] || 0}
+          </p>
+          <p className="mt-auto ml-4 text-xl">
+            400 × {levelExperience[4] || 0}
+          </p>
         </div>
       )}
 
