@@ -148,7 +148,7 @@ const LevelScreen: React.FC = () => {
             </div>
             <div className="w-full mx-auto mt-8 text-center px-20">
               <div className="bg-black w-full py-8 flex flex-col items-center justify-center text-white rounded-[12px]">
-                {/* <p className="text-xl mb-2">{currentWord?.furigana}</p> */}
+                <p className="">{currentWord?.furigana}</p>
                 <p className="text-2xl font-semibold tracking-widest">
                   {currentWord?.kanji}
                 </p>

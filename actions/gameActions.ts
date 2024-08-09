@@ -99,7 +99,7 @@ export const resetGame = (
     timer: 0,
     missCount: 0,
     experience: 0, // 経験値をリセット
-    levelExperience: { 1: 0, 2: 0, 3: 0, 4: 0 }, // 各レベルの経験値をリセット
+    levelExperience: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, // 各レベルの経験値をリセット
   });
 };
 
@@ -113,26 +113,62 @@ export const selectNewWord = async (
   get: StoreApi<GameState>["getState"]
 ) => {
   console.log("新しいワードを選択");
-  const { levels, usedWords, gameInProgress } = get();
+  const {
+    levels,
+    usedWords,
+    gameInProgress,
+    currentLevel,
+    levelWordCount,
+    levelWordLimits,
+  } = get();
 
   if (!gameInProgress) return;
 
-  const allWords = levels.flat();
-  const availableWords = allWords.filter((word) => !usedWords.includes(word));
+  const currentLevelWords = levels[currentLevel - 1];
+  const availableWords = currentLevelWords.filter(
+    (word) => !usedWords.includes(word)
+  );
 
   if (availableWords.length === 0) {
     set({ gameInProgress: false });
     return;
   }
 
-  const newWord =
-    availableWords[Math.floor(Math.random() * availableWords.length)];
+  const newWord = availableWords[0]; // 順番に出題するため、最初のワードを選択
 
   if (newWord) {
-    set({
+    set((state) => ({
       currentWord: newWord, // 新しいワードを設定
-      usedWords: [...usedWords, newWord], // 使用済みワードに追加
-    });
+      usedWords: [...state.usedWords, newWord], // 使用済みワードに追加
+      levelWordCount: {
+        ...state.levelWordCount,
+        [currentLevel.toString()]:
+          state.levelWordCount[currentLevel.toString()] + 1,
+      },
+    }));
+
+    // レベルのワード数が制限に達したら次のレベルに進む
+    if (
+      levelWordCount[currentLevel.toString()] + 1 >=
+      levelWordLimits[currentLevel]
+    ) {
+      const levelOrder = [1, 2, 3, 4, 5];
+      const currentLevelIndex = levelOrder.indexOf(currentLevel);
+      const nextLevelIndex =
+        currentLevelIndex + 1 < levelOrder.length
+          ? currentLevelIndex + 1
+          : currentLevelIndex;
+      const nextLevel = levelOrder[nextLevelIndex];
+
+      const newWordsForNextLevel = levels[nextLevel - 1]
+        .filter((word: Word) => !usedWords.includes(word))
+        .slice(0, levelWordLimits[nextLevel]);
+      set({
+        currentLevel: nextLevel,
+        wordsForCurrentLevel: newWordsForNextLevel,
+        levelWordCount: { ...levelWordCount, [nextLevel]: 0 },
+      });
+    }
   }
 };
 
@@ -145,24 +181,50 @@ export const nextWord = (
   set: StoreApi<GameState>["setState"],
   get: StoreApi<GameState>["getState"]
 ) => {
-  const { levels, usedWords } = get();
-  const allWords = levels.flat();
-  const remainingWords = allWords.filter(
-    (word: Word) => !usedWords.some((usedWord) => usedWord.kanji === word.kanji)
-  );
+  const {
+    currentLevel,
+    wordsForCurrentLevel,
+    usedWords,
+    levelWordCount,
+    levelWordLimits,
+  } = get();
 
-  if (remainingWords.length === 0) {
-    set({ gameInProgress: false });
-    return;
+  if (wordsForCurrentLevel.length === 0) {
+    // 次のレベルに進む
+    const levelOrder = [1, 2, 3, 4, 5];
+    const currentLevelIndex = levelOrder.indexOf(currentLevel);
+    const nextLevelIndex =
+      levelWordCount[currentLevel.toString()] >= levelWordLimits[currentLevel]
+        ? currentLevelIndex + 1 < levelOrder.length
+          ? currentLevelIndex + 1
+          : currentLevelIndex
+        : currentLevelIndex;
+    const nextLevel = levelOrder[nextLevelIndex];
+
+    // 新しいレベルのワードをセット
+    const newWordsForNextLevel = get()
+      .levels[nextLevel - 1].filter((word: Word) => !usedWords.includes(word))
+      .slice(0, levelWordLimits[nextLevel]);
+    set({
+      currentLevel: nextLevel,
+      wordsForCurrentLevel: newWordsForNextLevel,
+      levelWordCount: { ...levelWordCount, [nextLevel]: 0 },
+    });
+  } else {
+    // 次のワードをセット
+    const nextWord = wordsForCurrentLevel.shift();
+    if (nextWord) {
+      set({
+        currentWord: nextWord,
+        wordsForCurrentLevel,
+        usedWords: [...usedWords, nextWord],
+        levelWordCount: {
+          ...levelWordCount,
+          [currentLevel]: levelWordCount[currentLevel] + 1,
+        },
+      });
+    }
   }
-
-  const nextWord =
-    remainingWords[Math.floor(Math.random() * remainingWords.length)];
-  set((state) => ({
-    currentWord: nextWord, // 次のワードにレベルを設定
-    typedWord: "",
-    usedWords: [...state.usedWords, nextWord],
-  }));
 };
 
 /*

@@ -3,7 +3,7 @@
 | レベル2の単語
 |--------------------------------------------------------------------------
 */
-import { Word } from "@/types/word";
+import { Word } from '@/types/word';
 
 const level2: Word[] = [
   {
@@ -37,9 +37,9 @@ const level2: Word[] = [
     furigana: "いしゃのふようじょう",
     romaji: [
       "ishanofuyoujou",
-      "isyanofuyoujou",
+      "isyanohuyoujou",
       "ishanofuyouzyou",
-      "isyanofuyouzyou",
+      "isyanohuyouzyou",
     ],
   },
   {

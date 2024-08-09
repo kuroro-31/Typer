@@ -14,21 +14,24 @@ export interface GameState {
   levels: Word[][];
   wordsForCurrentLevel: Word[];
   usedWords: Word[];
-  progress: number; // プログレスバーのプロパティを追加
+  progress: number;
+  progressBar: number;
+  currentLevel: number;
+  experience: number;
+  levelExperience: { [key: number]: number };
+  levelWordCount: { [key: string]: number };
+  levelWordLimits: { [key: number]: number };
   setScreen: (screen: string) => void;
   startGame: () => void;
   endGame: () => void;
   resetGame: () => void;
   handleTyping: (input: string) => void;
   selectNewWord: () => void;
+  nextWord: () => void;
+  resetProgressBar: () => void;
+  setProgress: (progress: number) => void;
   failureAudio: () => void;
   stopAudio: () => void;
-  resetProgressBar: () => void; // プログレスバーのリセット関数を追加
-  playAudio: () => void; // playAudio関数を追加
-  nextWord: () => void; // nextWord関数を追加
-  currentLevel: number; // 現在のレベル
-  experience: number; // 総経験値
-  levelExperience: { [key: number]: number }; // 各レベルの経験値
-  progressBar: number; // progressBarプロパティを追加
-  setProgress: (progress: number) => void; // setProgress関数を追加
+  playAudio: () => void;
+  addExperience: (level: number) => void;
 }

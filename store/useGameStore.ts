@@ -11,6 +11,7 @@ import {
   startGame,
 } from "@/actions/gameActions";
 import { GameState } from "@/types/gameState";
+import { Word } from "@/types/word";
 import { loadLevels } from "@/utils/loadLevels";
 
 const useGameStore = create<GameState>((set, get) => ({
@@ -25,8 +26,6 @@ const useGameStore = create<GameState>((set, get) => ({
   missCount: 0,
   level: 1,
   levels: [],
-  wordsForCurrentLevel: [],
-  usedWords: [],
   progress: 0, // プログレスバーの初期値を追加
   progressBar: 0, // プログレスバーの初期値を追加
   setScreen: (screen) => set({ screen }),
@@ -57,9 +56,16 @@ const useGameStore = create<GameState>((set, get) => ({
   }, // playAudio関数を追加
   currentLevel: 1, // 初期レベル
   experience: 0, // 初期総経験値
-  levelExperience: { 1: 0, 2: 0, 3: 0, 4: 0 }, // 各レベルの初期経験値
+  usedWords: [], // 出題されたワード
+  levelExperience: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, // 各レベルの初期経験値
+  levelWordCount: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 }, // 各レベルのワード数を管理
+  levelWordLimits: { 1: 5, 2: 10, 3: 10, 4: 5, 5: 1 }, // 各レベルのワード数の制限を追加
+  wordsForCurrentLevel: [] as Word[], // 現在のレベルのワードを管理
+  setWordsForCurrentLevel: (words: Word[]) =>
+    set({ wordsForCurrentLevel: words }), // 現在のレベルのワードをセットする関数を追加
   addExperience: (level: number) => addExperience(set, get, level), // addExperience関数を修正
 }));
+
 export default useGameStore;
 
 // 初期化処理をクライアントサイドでのみ実行
@@ -77,7 +83,7 @@ if (typeof window !== "undefined") {
     useGameStore.setState((state) => ({
       ...state,
       levels: levels,
-      wordsForCurrentLevel: levels[0], // 初期化時に最初のレベルのワードをセット
+      wordsForCurrentLevel: levels[0].slice(0, state.levelWordLimits[1]), // 初期化時に最初のレベルのワードをセット
     }));
   });
 }
