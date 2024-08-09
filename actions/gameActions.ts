@@ -113,28 +113,15 @@ export const selectNewWord = async (
   get: StoreApi<GameState>["getState"]
 ) => {
   console.log("新しいワードを選択");
-  const {
-    levels,
-    currentLevel,
-    wordsForCurrentLevel,
-    usedWords,
-    gameInProgress,
-  } = get();
+  const { levels, usedWords, gameInProgress } = get();
 
   if (!gameInProgress) return;
 
-  if (wordsForCurrentLevel.length === 0) {
-    const currentLevelWords: Word[] = [...levels[currentLevel - 1]];
-    set({ wordsForCurrentLevel: currentLevelWords, usedWords: [] });
-  }
-
-  const availableWords = wordsForCurrentLevel.filter(
-    (word) => !usedWords.includes(word)
-  );
+  const allWords = levels.flat();
+  const availableWords = allWords.filter((word) => !usedWords.includes(word));
 
   if (availableWords.length === 0) {
-    const currentLevelWords: Word[] = [...levels[currentLevel - 1]];
-    set({ wordsForCurrentLevel: currentLevelWords, usedWords: [] });
+    set({ gameInProgress: false });
     return;
   }
 
@@ -144,6 +131,7 @@ export const selectNewWord = async (
   if (newWord) {
     set({
       currentWord: newWord, // 新しいワードを設定
+      usedWords: [...usedWords, newWord], // 使用済みワードに追加
     });
   }
 };
@@ -157,8 +145,9 @@ export const nextWord = (
   set: StoreApi<GameState>["setState"],
   get: StoreApi<GameState>["getState"]
 ) => {
-  const { wordsForCurrentLevel, usedWords, currentLevel } = get();
-  const remainingWords = wordsForCurrentLevel.filter(
+  const { levels, usedWords } = get();
+  const allWords = levels.flat();
+  const remainingWords = allWords.filter(
     (word: Word) => !usedWords.some((usedWord) => usedWord.kanji === word.kanji)
   );
 
@@ -174,12 +163,6 @@ export const nextWord = (
     typedWord: "",
     usedWords: [...state.usedWords, nextWord],
   }));
-
-  // レベルの変更ロジック
-  const levelOrder = [1, 2, 3, 4, 5];
-  const currentLevelIndex = levelOrder.indexOf(currentLevel);
-  const nextLevelIndex = (currentLevelIndex + 1) % levelOrder.length;
-  set({ currentLevel: levelOrder[nextLevelIndex] });
 };
 
 /*

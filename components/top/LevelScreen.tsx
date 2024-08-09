@@ -199,6 +199,9 @@ const LevelScreen: React.FC = () => {
           <p className="mt-auto ml-4 text-xl">
             400 × {levelExperience[4] || 0}
           </p>
+          <p className="mt-auto ml-4 text-xl">
+            500 × {levelExperience[5] || 0}
+          </p>
         </div>
       )}
 

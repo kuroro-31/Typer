@@ -9,7 +9,7 @@ export const loadLevels = async () => {
     import(`@/components/top/words/level_2`),
     import(`@/components/top/words/level_3`),
     import(`@/components/top/words/level_4`),
-    // import(`@/components/top/words/level_2`),
+    import(`@/components/top/words/level_5`),
   ]);
   return levels.map((module) => module.default);
 };
